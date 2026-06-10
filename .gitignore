@@ -1,34 +1,108 @@
-# Gradle files
+# =========================
+# Gradle
+# =========================
 .gradle/
 build/
+**/build/
 
-# Local configuration file (sdk path, etc)
+# Local configuration
 local.properties
 
-# Log/OS Files
-*.log
+# =========================
+# Android Studio
+# =========================
+.idea/
+*.iml
 
-# Android Studio generated files and folders
-captures/
-.externalNativeBuild/
-.cxx/
-*.aab
+# 保留团队共享配置（可选）
+!.idea/codeStyles/
+!.idea/inspectionProfiles/
+!.idea/runConfigurations/
+
+# Android Studio 临时文件
+.idea/caches/
+.idea/libraries/
+.idea/modules.xml
+.idea/workspace.xml
+.idea/navEditor.xml
+.idea/assetWizardSettings.xml
+.idea/deploymentTargetDropDown.xml
+.idea/render.experimental.xml
+
+# =========================
+# APK / AAB
+# =========================
 *.apk
+*.aab
+*.ap_
 output-metadata.json
 
-# IntelliJ
-*.iml
-.idea/
-misc.xml
-deploymentTargetDropDown.xml
-render.experimental.xml
+# =========================
+# Native Build
+# =========================
+.externalNativeBuild/
+.cxx/
 
-# Keystore files
+# =========================
+# Logs
+# =========================
+*.log
+*.hprof
+
+# =========================
+# Kotlin
+# =========================
+.kotlin/
+
+# =========================
+# Keystore
+# =========================
 *.jks
 *.keystore
+*.pem
 
-# Google Services (e.g. APIs or Firebase)
+# =========================
+# Google Services
+# =========================
 google-services.json
 
-# Android Profiling
-*.hprof
+# 如果 Firebase 配置需要团队共享，请删除上面这一行
+
+# =========================
+# Android Captures
+# =========================
+captures/
+
+# =========================
+# MacOS
+# =========================
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Thumbnails
+._*
+
+# Files that might appear in root
+.Spotlight-V100
+.Trashes
+
+# =========================
+# VS Code
+# =========================
+.vscode/
+
+# =========================
+# Temporary files
+# =========================
+*.tmp
+*.temp
+*.swp
+*.swo
+*~
+
+# =========================
+# Crash / Reports
+# =========================
+hs_err_pid*
+replay_pid*

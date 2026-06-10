@@ -1,0 +1,220 @@
+package com.luzalid.clickclack.data
+
+import android.content.Context
+import com.luzalid.clickclack.model.MediaAttachment
+import com.luzalid.clickclack.model.MediaAttachmentDraft
+import com.luzalid.clickclack.model.MediaType
+import com.luzalid.clickclack.model.PreferenceItem
+import com.luzalid.clickclack.model.Recommendation
+import com.luzalid.clickclack.model.RecordDetail
+import com.luzalid.clickclack.model.RecordSummary
+import com.luzalid.clickclack.model.RecordVersion
+import com.luzalid.clickclack.recommendation.RecommendationCatalog
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
+import java.util.UUID
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
+
+class ClickClackRepository(context: Context) {
+    private val dao = ClickClackDatabase.get(context).dao()
+
+    suspend fun initialize() {
+        dao.insertRecommendations(RecommendationCatalog.builtIns())
+        seedPreference("show_daily_reminder", "false")
+        seedPreference("reminder_time", "21:30")
+        seedPreference("preferred_categories", "全部分类")
+        seedPreference("theme_mode", "跟随系统")
+        seedPreference("media_strategy", "保存本地 URI")
+        seedPreference("debug_ui_outline", "false")
+    }
+
+    suspend fun todayRecommendation(): Recommendation {
+        val recommendations = dao.getEnabledRecommendations().ifEmpty {
+            RecommendationCatalog.builtIns().also { dao.insertRecommendations(it) }
+        }
+        val index = stableTodayIndex(recommendations.size)
+        return recommendations[index].toDomain()
+    }
+
+    suspend fun homeRecommendations(): List<Recommendation> {
+        val recommendations = dao.getEnabledRecommendations().ifEmpty {
+            RecommendationCatalog.builtIns().also { dao.insertRecommendations(it) }
+        }
+        val index = stableTodayIndex(recommendations.size)
+        return (recommendations.drop(index) + recommendations.take(index)).map { it.toDomain() }
+    }
+
+    suspend fun getRecommendation(id: String): Recommendation? = dao.getRecommendation(id)?.toDomain()
+
+    fun observeTodayRecord(): Flow<RecordSummary?> =
+        dao.observeLatestRecordForDate(todayKey()).map { it?.toDomain() }
+
+    fun observeRecordSummaries(): Flow<List<RecordSummary>> =
+        dao.observeRecordSummaries().map { records -> records.map { it.toDomain() } }
+
+    fun observeRecordDetail(recordId: String): Flow<RecordDetail?> =
+        dao.observeRecordDetail(recordId).map { it?.toDomain() }
+
+    fun observeVersions(recordId: String): Flow<List<RecordVersion>> =
+        dao.observeVersions(recordId).map { versions -> versions.map { it.toDomain() } }
+
+    fun observeMediaForVersion(versionId: String): Flow<List<MediaAttachment>> =
+        dao.observeMediaForVersion(versionId).map { media -> media.map { it.toDomain() } }
+
+    suspend fun getMediaDraftsForVersion(versionId: String): List<MediaAttachmentDraft> =
+        dao.getMediaForVersion(versionId).map {
+            MediaAttachmentDraft(
+                id = it.id,
+                type = MediaType.fromDbValue(it.type),
+                uri = it.uri,
+                thumbnailUri = it.thumbnailUri,
+            )
+        }
+
+    fun observePreferences(): Flow<List<PreferenceItem>> =
+        dao.observePreferences().map { preferences -> preferences.map { PreferenceItem(it.key, it.value) } }
+
+    suspend fun updatePreference(key: String, value: String) {
+        dao.upsertPreference(UserPreferenceEntity(key = key, value = value, updatedAt = System.currentTimeMillis()))
+    }
+
+    suspend fun saveRecord(
+        recordId: String?,
+        recommendation: Recommendation,
+        title: String,
+        content: String,
+        mood: String,
+        location: String,
+        tags: String,
+        media: List<MediaAttachmentDraft>,
+    ): String {
+        val now = System.currentTimeMillis()
+        val resolvedRecordId = recordId ?: UUID.randomUUID().toString()
+        val existing = recordId?.let { dao.getRecord(it) }
+        val versionNumber = dao.latestVersionNumber(resolvedRecordId) + 1
+        val versionId = UUID.randomUUID().toString()
+        val titleSnapshot = title.ifBlank { recommendation.title }
+        val categorySnapshot = recommendation.category
+
+        val record = CheckInRecordEntity(
+            id = resolvedRecordId,
+            recommendationId = recommendation.id,
+            title = titleSnapshot,
+            dateKey = existing?.dateKey ?: todayKey(),
+            category = categorySnapshot,
+            currentVersionId = versionId,
+            remoteId = existing?.remoteId,
+            syncStatus = "pending_local",
+            createdAt = existing?.createdAt ?: now,
+            updatedAt = now,
+            deletedAt = existing?.deletedAt,
+        )
+        if (existing == null) {
+            dao.insertRecord(record)
+        } else {
+            dao.updateRecord(record)
+        }
+        dao.insertVersion(
+            CheckInVersionEntity(
+                id = versionId,
+                recordId = resolvedRecordId,
+                versionNumber = versionNumber,
+                titleSnapshot = titleSnapshot,
+                contentSnapshot = content,
+                categorySnapshot = categorySnapshot,
+                moodSnapshot = mood,
+                locationSnapshot = location,
+                tagsSnapshot = tags,
+                editedAt = now,
+            ),
+        )
+        dao.insertMedia(
+            media.mapIndexed { index, attachment ->
+                MediaAttachmentEntity(
+                    id = attachment.id.ifBlank { UUID.randomUUID().toString() },
+                    recordId = resolvedRecordId,
+                    versionId = versionId,
+                    type = attachment.type.dbValue,
+                    uri = attachment.uri,
+                    thumbnailUri = attachment.thumbnailUri,
+                    sortOrder = index,
+                    createdAt = now,
+                )
+            },
+        )
+        return resolvedRecordId
+    }
+
+    private suspend fun seedPreference(key: String, value: String) {
+        if (dao.getPreference(key) == null) {
+            dao.upsertPreference(UserPreferenceEntity(key = key, value = value, updatedAt = System.currentTimeMillis()))
+        }
+    }
+}
+
+private fun RecommendationEntity.toDomain(): Recommendation =
+    Recommendation(
+        id = id,
+        title = title,
+        description = description,
+        category = category,
+        imageAsset = imageAsset,
+    )
+
+private fun RecordSummaryProjection.toDomain(): RecordSummary =
+    RecordSummary(
+        id = id,
+        title = title,
+        dateKey = dateKey,
+        category = category,
+        updatedAt = updatedAt,
+        content = content.orEmpty(),
+        thumbnailUri = thumbnailUri,
+        mediaType = mediaType?.let(MediaType::fromDbValue),
+    )
+
+private fun RecordDetailProjection.toDomain(): RecordDetail =
+    RecordDetail(
+        id = id,
+        recommendationId = recommendationId,
+        title = title,
+        dateKey = dateKey,
+        category = category,
+        content = content.orEmpty(),
+        mood = mood.orEmpty(),
+        location = location.orEmpty(),
+        tags = tags.orEmpty(),
+        versionNumber = versionNumber ?: 1,
+        currentVersionId = currentVersionId,
+        createdAt = createdAt,
+        updatedAt = updatedAt,
+    )
+
+private fun RecordVersionProjection.toDomain(): RecordVersion =
+    RecordVersion(
+        id = id,
+        versionNumber = versionNumber,
+        title = title,
+        content = content,
+        editedAt = editedAt,
+        isCurrent = id == currentVersionId,
+    )
+
+private fun MediaAttachmentEntity.toDomain(): MediaAttachment =
+    MediaAttachment(
+        id = id,
+        type = MediaType.fromDbValue(type),
+        uri = uri,
+        thumbnailUri = thumbnailUri,
+        sortOrder = sortOrder,
+    )
+
+private fun todayKey(): String = SimpleDateFormat("yyyy-MM-dd", Locale.CHINA).format(Date())
+
+private fun stableTodayIndex(size: Int): Int {
+    if (size <= 1) return 0
+    val digits = todayKey().filter(Char::isDigit).toIntOrNull() ?: 0
+    return ((digits % size) + (digits / 3 % size)) % size
+}

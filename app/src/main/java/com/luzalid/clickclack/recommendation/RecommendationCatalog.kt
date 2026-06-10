@@ -1,0 +1,98 @@
+package com.luzalid.clickclack.recommendation
+
+import com.luzalid.clickclack.data.RecommendationEntity
+
+object RecommendationCatalog {
+    fun builtIns(now: Long = System.currentTimeMillis()): List<RecommendationEntity> = listOf(
+        RecommendationEntity(
+            id = "local-food-001",
+            title = "吃一份黄焖鸡米饭",
+            description = "给今天留一个有味道的片段，记录这顿饭和当时的心情。",
+            category = "美食",
+            imageAsset = "food",
+            createdAt = now,
+            updatedAt = now,
+        ),
+        RecommendationEntity(
+            id = "local-commute-001",
+            title = "换一种交通工具出行",
+            description = "观察路上的节奏变化，写下你看到的一个细节。",
+            category = "通勤",
+            imageAsset = "commute",
+            createdAt = now,
+            updatedAt = now,
+        ),
+        RecommendationEntity(
+            id = "local-sport-001",
+            title = "饭后散步 20 分钟",
+            description = "把脚步、空气和身体状态记录下来。",
+            category = "运动",
+            imageAsset = "sport",
+            createdAt = now,
+            updatedAt = now,
+        ),
+        RecommendationEntity(
+            id = "local-work-001",
+            title = "整理一次桌面或待办列表",
+            description = "写下整理前后的变化，顺手记录一个最想推进的任务。",
+            category = "工作",
+            imageAsset = "work",
+            createdAt = now,
+            updatedAt = now,
+        ),
+        RecommendationEntity(
+            id = "local-fun-001",
+            title = "看一集没看过的纪录片",
+            description = "留下一个新知识，或者一个让你停顿的镜头。",
+            category = "娱乐",
+            imageAsset = "fun",
+            createdAt = now,
+            updatedAt = now,
+        ),
+        RecommendationEntity(
+            id = "local-social-001",
+            title = "给一位朋友发一条问候",
+            description = "记录你们聊到了什么，也记录主动联系的感受。",
+            category = "社交",
+            imageAsset = "social",
+            createdAt = now,
+            updatedAt = now,
+        ),
+        RecommendationEntity(
+            id = "local-relax-001",
+            title = "睡前听 10 分钟轻音乐",
+            description = "把入睡前的状态写下来，哪怕只有一句。",
+            category = "放松",
+            imageAsset = "relax",
+            createdAt = now,
+            updatedAt = now,
+        ),
+        RecommendationEntity(
+            id = "local-home-001",
+            title = "清理一个小角落",
+            description = "用几分钟让生活空间恢复一点秩序。",
+            category = "家务",
+            imageAsset = "home",
+            createdAt = now,
+            updatedAt = now,
+        ),
+        RecommendationEntity(
+            id = "local-study-001",
+            title = "读完一篇短文章",
+            description = "记录一个观点，或者一个你想继续追问的问题。",
+            category = "学习",
+            imageAsset = "study",
+            createdAt = now,
+            updatedAt = now,
+        ),
+        RecommendationEntity(
+            id = "local-explore-001",
+            title = "走进一家没去过的小店",
+            description = "给陌生地点留一张图和一句评价。",
+            category = "探索",
+            imageAsset = "explore",
+            createdAt = now,
+            updatedAt = now,
+        ),
+    )
+}
