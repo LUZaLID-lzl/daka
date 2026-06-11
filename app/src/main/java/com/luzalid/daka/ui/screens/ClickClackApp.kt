@@ -14,6 +14,7 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
@@ -44,6 +45,7 @@ import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.automirrored.filled.Send
@@ -53,6 +55,7 @@ import androidx.compose.material.icons.automirrored.filled.FormatListBulleted
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.AddCircle
 import androidx.compose.material.icons.filled.CalendarToday
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Explore
 import androidx.compose.material.icons.filled.GridView
@@ -90,6 +93,8 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.darkColorScheme
+import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
@@ -112,18 +117,23 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.TransformOrigin
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
@@ -151,7 +161,11 @@ private sealed interface AppRoute {
     data object Home : AppRoute
     data object History : AppRoute
     data object Profile : AppRoute
-    data class Edit(val recordId: String?, val recommendation: Recommendation) : AppRoute
+    data class Edit(
+        val recordId: String?,
+        val recommendation: Recommendation,
+        val fromRecommendationCard: Boolean,
+    ) : AppRoute
     data class Detail(val recordId: String) : AppRoute
     data class Versions(val recordId: String) : AppRoute
 }
@@ -160,21 +174,6 @@ private enum class HistoryMode {
     List,
     Grid,
     Carousel,
-}
-
-private val LocalDebugUiOutline = compositionLocalOf { false }
-private val DebugOutlineColor = Color(0xFF1D9BF0)
-
-internal fun Modifier.debugOutline(
-    shape: Shape = RoundedCornerShape(0.dp),
-    color: Color = DebugOutlineColor,
-    width: androidx.compose.ui.unit.Dp = 1.dp,
-): Modifier = composed {
-    if (LocalDebugUiOutline.current) {
-        border(width, color, shape)
-    } else {
-        this
-    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -186,20 +185,23 @@ fun ClickClackApp(repository: ClickClackRepository) {
         value = repository.homeRecommendations()
     }
     val preferences by repository.observePreferences().collectAsState(initial = emptyList())
+    val appearance = rememberAppAppearance(preferences)
     val debugUiOutlineEnabled = preferenceValue(preferences, "debug_ui_outline") == "true"
 
-    MaterialTheme {
-        CompositionLocalProvider(LocalDebugUiOutline provides debugUiOutlineEnabled) {
+    MaterialTheme(colorScheme = appColorScheme(appearance.isDark)) {
+        CompositionLocalProvider(
+            LocalDebugUiOutline provides debugUiOutlineEnabled,
+            LocalAppAppearance provides appearance,
+        ) {
             Scaffold(
                 contentWindowInsets = WindowInsets(0.dp),
+                containerColor = appearance.surfaceTint,
                 topBar = {
                     when (val current = route) {
                         AppRoute.Home -> Unit
                         AppRoute.History -> CenterAlignedTopAppBar(title = { Text(stringResource(R.string.screen_records)) })
                         AppRoute.Profile -> CenterAlignedTopAppBar(title = { Text(stringResource(R.string.screen_profile)) })
-                        is AppRoute.Edit -> BackTopBar(stringResource(R.string.screen_check_in)) {
-                            route = current.recordId?.let { AppRoute.Detail(it) } ?: AppRoute.Home
-                        }
+                        is AppRoute.Edit -> Unit
                         is AppRoute.Detail -> BackTopBar(stringResource(R.string.screen_record_detail)) { route = AppRoute.History }
                         is AppRoute.Versions -> BackTopBar(stringResource(R.string.screen_version_history)) { route = AppRoute.Detail(current.recordId) }
                     }
@@ -212,8 +214,8 @@ fun ClickClackApp(repository: ClickClackRepository) {
                             recommendations = homeRecommendations,
                             onHistory = { route = AppRoute.History },
                         onProfile = { route = AppRoute.Profile },
-                        onRecord = { recordId, recommendation ->
-                            route = AppRoute.Edit(recordId, recommendation)
+                        onRecord = { recordId, recommendation, fromRecommendationCard ->
+                            route = AppRoute.Edit(recordId, recommendation, fromRecommendationCard)
                         },
                     )
 
@@ -230,6 +232,7 @@ fun ClickClackApp(repository: ClickClackRepository) {
                         repository = repository,
                         recordId = current.recordId,
                         fallbackRecommendation = current.recommendation,
+                        fromRecommendationCard = current.fromRecommendationCard,
                         onCancel = { route = if (current.recordId == null) AppRoute.Home else AppRoute.Detail(current.recordId) },
                         onSaved = { route = AppRoute.Detail(it) },
                     )
@@ -248,6 +251,7 @@ fun ClickClackApp(repository: ClickClackRepository) {
                                     category = detail.category,
                                     imageAsset = detail.category,
                                 ),
+                                fromRecommendationCard = false,
                             )
                         },
                         onVersions = { route = AppRoute.Versions(current.recordId) },
@@ -277,198 +281,6 @@ private fun BackTopBar(title: String, onBack: () -> Unit) {
     )
 }
 
-@Composable
-private fun EditRecordScreen(
-    padding: PaddingValues,
-    repository: ClickClackRepository,
-    recordId: String?,
-    fallbackRecommendation: Recommendation,
-    onCancel: () -> Unit,
-    onSaved: (String) -> Unit,
-) {
-    val context = LocalContext.current
-    val scope = rememberCoroutineScope()
-    val detail by remember(recordId) {
-        if (recordId == null) flowOf(null) else repository.observeRecordDetail(recordId)
-    }.collectAsState(initial = null)
-    val activeRecommendation by produceState(
-        initialValue = fallbackRecommendation,
-        recordId,
-        detail?.recommendationId,
-    ) {
-        value = detail?.recommendationId?.let { repository.getRecommendation(it) } ?: fallbackRecommendation
-    }
-
-    var loadedRecordId by remember(recordId) { mutableStateOf<String?>(null) }
-    var title by remember(recordId) { mutableStateOf(fallbackRecommendation.title) }
-    var content by remember(recordId) { mutableStateOf("") }
-    var mood by remember(recordId) { mutableStateOf("") }
-    var location by remember(recordId) { mutableStateOf("") }
-    var tags by remember(recordId) { mutableStateOf("") }
-    val media = remember(recordId) { mutableStateListOf<MediaAttachmentDraft>() }
-    var saving by remember { mutableStateOf(false) }
-
-    LaunchedEffect(recordId, detail?.id, activeRecommendation.id) {
-        if (recordId == null && loadedRecordId != "new") {
-            title = activeRecommendation.title
-            content = ""
-            mood = ""
-            location = ""
-            tags = ""
-            media.clear()
-            loadedRecordId = "new"
-        }
-        if (recordId != null && detail != null && loadedRecordId != detail!!.id) {
-            title = detail!!.title
-            content = detail!!.content
-            mood = detail!!.mood
-            location = detail!!.location
-            tags = detail!!.tags
-            media.clear()
-            media.addAll(repository.getMediaDraftsForVersion(detail!!.currentVersionId))
-            loadedRecordId = detail!!.id
-        }
-    }
-
-    fun persistReadPermission(uri: Uri) {
-        runCatching {
-            context.contentResolver.takePersistableUriPermission(
-                uri,
-                Intent.FLAG_GRANT_READ_URI_PERMISSION,
-            )
-        }
-    }
-
-    val imageLauncher = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
-        uri?.let {
-            persistReadPermission(it)
-            media.add(MediaAttachmentDraft(id = UUID.randomUUID().toString(), type = MediaType.Image, uri = it.toString()))
-        }
-    }
-    val videoLauncher = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
-        uri?.let {
-            persistReadPermission(it)
-            media.add(MediaAttachmentDraft(id = UUID.randomUUID().toString(), type = MediaType.Video, uri = it.toString()))
-        }
-    }
-
-    LazyColumn(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(padding)
-            .debugOutline(),
-        contentPadding = PaddingValues(16.dp),
-        verticalArrangement = Arrangement.spacedBy(14.dp),
-    ) {
-        item {
-            RecommendationMiniCard(activeRecommendation)
-        }
-        item {
-            OutlinedTextField(
-                value = title,
-                onValueChange = { title = it },
-                modifier = Modifier.fillMaxWidth(),
-                label = { Text(stringResource(R.string.field_title)) },
-                singleLine = true,
-                keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
-            )
-        }
-        item {
-            OutlinedTextField(
-                value = content,
-                onValueChange = { content = it },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(168.dp),
-                label = { Text(stringResource(R.string.field_content)) },
-                keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
-            )
-        }
-        item {
-            Row(horizontalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.fillMaxWidth()) {
-                MediaAddButton(
-                    text = stringResource(R.string.action_add_image),
-                    icon = { Icon(Icons.Filled.Image, contentDescription = null) },
-                    modifier = Modifier.weight(1f),
-                    onClick = { imageLauncher.launch(arrayOf("image/*")) },
-                )
-                MediaAddButton(
-                    text = stringResource(R.string.action_add_video),
-                    icon = { Icon(Icons.Filled.Videocam, contentDescription = null) },
-                    modifier = Modifier.weight(1f),
-                    onClick = { videoLauncher.launch(arrayOf("video/*")) },
-                )
-            }
-        }
-        if (media.isNotEmpty()) {
-            item {
-                SectionTitle(stringResource(R.string.section_added_media))
-            }
-            items(media, key = { it.id }) { attachment ->
-                MediaDraftRow(attachment = attachment, onRemove = { media.remove(attachment) })
-            }
-        }
-        item {
-            Row(horizontalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.fillMaxWidth()) {
-                OutlinedTextField(
-                    value = mood,
-                    onValueChange = { mood = it },
-                    modifier = Modifier.weight(1f),
-                    label = { Text(stringResource(R.string.field_mood)) },
-                    singleLine = true,
-                )
-                OutlinedTextField(
-                    value = location,
-                    onValueChange = { location = it },
-                    modifier = Modifier.weight(1f),
-                    label = { Text(stringResource(R.string.field_location)) },
-                    singleLine = true,
-                )
-            }
-        }
-        item {
-            OutlinedTextField(
-                value = tags,
-                onValueChange = { tags = it },
-                modifier = Modifier.fillMaxWidth(),
-                label = { Text(stringResource(R.string.field_tags)) },
-                singleLine = true,
-            )
-        }
-        item {
-            Row(horizontalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.fillMaxWidth()) {
-                OutlinedButton(onClick = onCancel, modifier = Modifier.weight(1f), enabled = !saving) {
-                    Text(stringResource(R.string.action_cancel))
-                }
-                Button(
-                    onClick = {
-                        saving = true
-                        scope.launch {
-                            val savedId = repository.saveRecord(
-                                recordId = recordId,
-                                recommendation = activeRecommendation,
-                                title = title,
-                                content = content,
-                                mood = mood,
-                                location = location,
-                                tags = tags,
-                                media = media.toList(),
-                            )
-                            saving = false
-                            onSaved(savedId)
-                        }
-                    },
-                    modifier = Modifier.weight(1f),
-                    enabled = !saving && (content.isNotBlank() || media.isNotEmpty()),
-                ) {
-                    Icon(Icons.Filled.Save, contentDescription = null, modifier = Modifier.size(18.dp))
-                    Spacer(Modifier.width(8.dp))
-                    Text(stringResource(if (saving) R.string.action_saving else R.string.action_save))
-                }
-            }
-        }
-    }
-}
 
 @Composable
 private fun HistoryScreen(
@@ -657,149 +469,6 @@ private fun VersionHistoryScreen(
     ) {
         items(versions, key = { it.id }) { version ->
             VersionCard(version)
-        }
-    }
-}
-
-@Composable
-private fun ProfileScreen(padding: PaddingValues, repository: ClickClackRepository) {
-    val preferences by repository.observePreferences().collectAsState(initial = emptyList())
-    val scope = rememberCoroutineScope()
-    LazyColumn(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(padding)
-            .debugOutline(),
-        contentPadding = PaddingValues(16.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
-    ) {
-        item {
-            ProfileHeader()
-        }
-        item {
-            PreferenceSection(stringResource(R.string.preference_section_recommendations))
-        }
-        item {
-            PreferenceSwitchRow(
-                icon = { Icon(Icons.Filled.Notifications, contentDescription = null) },
-                title = stringResource(R.string.preference_daily_reminder),
-                description = preferenceValue(preferences, "reminder_time"),
-                checked = preferenceValue(preferences, "show_daily_reminder") == "true",
-                onCheckedChange = { checked ->
-                    scope.launch { repository.updatePreference("show_daily_reminder", checked.toString()) }
-                },
-            )
-        }
-        item {
-            PreferenceStaticRow(
-                icon = { Icon(Icons.Filled.Settings, contentDescription = null) },
-                title = stringResource(R.string.preference_categories),
-                description = localizedPreferenceValue(preferences, "preferred_categories"),
-            )
-        }
-        item {
-            PreferenceSection(stringResource(R.string.preference_section_appearance))
-        }
-        item {
-            PreferenceStaticRow(
-                icon = { Icon(Icons.Filled.Palette, contentDescription = null) },
-                title = stringResource(R.string.preference_theme),
-                description = localizedPreferenceValue(preferences, "theme_mode"),
-            )
-        }
-        item {
-            PreferenceStaticRow(
-                icon = { Icon(Icons.Filled.Storage, contentDescription = null) },
-                title = stringResource(R.string.preference_media_strategy),
-                description = localizedPreferenceValue(preferences, "media_strategy"),
-            )
-        }
-        item {
-            PreferenceSwitchRow(
-                icon = { Icon(Icons.Filled.GridView, contentDescription = null) },
-                title = stringResource(R.string.preference_debug_outline),
-                description = stringResource(R.string.preference_debug_outline_description),
-                checked = preferenceValue(preferences, "debug_ui_outline") == "true",
-                onCheckedChange = { checked ->
-                    scope.launch { repository.updatePreference("debug_ui_outline", checked.toString()) }
-                },
-            )
-        }
-        item {
-            PreferenceStaticRow(
-                icon = { Icon(Icons.Filled.Info, contentDescription = null) },
-                title = stringResource(R.string.preference_about),
-                description = stringResource(R.string.preference_about_description),
-            )
-        }
-    }
-}
-
-@Composable
-private fun RecommendationMiniCard(recommendation: Recommendation) {
-    Card(
-        modifier = Modifier.debugOutline(RoundedCornerShape(24.dp)),
-        shape = RoundedCornerShape(24.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
-    ) {
-        Row(
-            modifier = Modifier.fillMaxWidth().padding(14.dp),
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            CategoryVisual(asset = recommendation.imageAsset, category = recommendation.category, modifier = Modifier.size(72.dp))
-            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                Text(recommendation.category, style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSecondaryContainer)
-                Text(recommendation.title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-                Text(recommendation.description, maxLines = 2, overflow = TextOverflow.Ellipsis, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            }
-        }
-    }
-}
-
-@Composable
-private fun MediaAddButton(
-    text: String,
-    icon: @Composable () -> Unit,
-    modifier: Modifier = Modifier,
-    onClick: () -> Unit,
-) {
-    OutlinedButton(onClick = onClick, modifier = modifier.height(52.dp).debugOutline(RoundedCornerShape(999.dp))) {
-        icon()
-        Spacer(Modifier.width(8.dp))
-        Text(text)
-    }
-}
-
-@Composable
-private fun MediaDraftRow(attachment: MediaAttachmentDraft, onRemove: () -> Unit) {
-    Card(
-        modifier = Modifier.debugOutline(RoundedCornerShape(22.dp)),
-        shape = RoundedCornerShape(22.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
-    ) {
-        Row(
-            modifier = Modifier.fillMaxWidth().padding(12.dp),
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            MediaThumbnail(
-                uri = attachment.uri,
-                mediaType = attachment.type,
-                modifier = Modifier.size(68.dp),
-            )
-            Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                Text(
-                    stringResource(
-                        if (attachment.type == MediaType.Image) R.string.media_image else R.string.media_video,
-                    ),
-                    fontWeight = FontWeight.Medium,
-                )
-                Text(attachment.uri, maxLines = 1, overflow = TextOverflow.Ellipsis, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            }
-            OutlinedButton(onClick = onRemove) {
-                Text(stringResource(R.string.action_remove))
-            }
         }
     }
 }
@@ -1080,77 +749,138 @@ private fun EmptyState(title: String, body: String, modifier: Modifier = Modifie
     }
 }
 
+private fun previewRecordSummary() = RecordSummary(
+    id = "record-preview",
+    title = "饭后散步 20 分钟",
+    dateKey = "2026-06-11",
+    category = "运动",
+    updatedAt = 1_781_151_200_000,
+    content = "傍晚的风很舒服，路上看到一家新开的咖啡店。",
+    thumbnailUri = null,
+    mediaType = null,
+)
+
+private fun previewRecordDetail() = RecordDetail(
+    id = "record-preview",
+    recommendationId = "sport",
+    title = "饭后散步 20 分钟",
+    dateKey = "2026-06-11",
+    category = "运动",
+    content = "傍晚的风很舒服，路上看到一家新开的咖啡店。",
+    mood = "轻松",
+    location = "小区附近",
+    tags = "sport, relax",
+    versionNumber = 2,
+    currentVersionId = "version-preview",
+    createdAt = 1_781_151_200_000,
+    updatedAt = 1_781_151_200_000,
+)
+
+private fun previewMediaAttachment() = MediaAttachment(
+    id = "media-preview",
+    type = MediaType.Image,
+    uri = "",
+    thumbnailUri = null,
+    sortOrder = 0,
+)
+
+private fun previewVersion() = RecordVersion(
+    id = "version-preview",
+    versionNumber = 2,
+    title = "饭后散步 20 分钟",
+    content = "傍晚的风很舒服，路上看到一家新开的咖啡店。",
+    editedAt = 1_781_151_200_000,
+    isCurrent = true,
+)
+
 @Composable
-private fun ProfileHeader() {
-    Card(
-        modifier = Modifier.debugOutline(RoundedCornerShape(28.dp)),
-        shape = RoundedCornerShape(28.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
-    ) {
-        Column(modifier = Modifier.fillMaxWidth().padding(18.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            Text(
-                stringResource(R.string.profile_local_first),
-                style = MaterialTheme.typography.labelLarge,
-                color = MaterialTheme.colorScheme.onPrimaryContainer,
-            )
-            Text(stringResource(R.string.app_name), style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
-            Text(stringResource(R.string.profile_description))
+private fun PreviewSurface(content: @Composable () -> Unit) {
+    MaterialTheme(colorScheme = appColorScheme(false)) {
+        CompositionLocalProvider(
+            LocalDebugUiOutline provides false,
+            LocalAppAppearance provides appAppearance(isDark = false, backgroundStyle = "mist"),
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(LocalAppAppearance.current.backgroundBrush)
+                    .padding(16.dp),
+            ) {
+                content()
+            }
         }
     }
 }
 
+@Preview(name = "Record List Card", showBackground = true, widthDp = 360, heightDp = 140)
 @Composable
-private fun PreferenceSection(text: String) {
-    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        Text(text, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-        HorizontalDivider()
+private fun RecordListCardPreview() {
+    PreviewSurface {
+        RecordListCard(record = previewRecordSummary(), onClick = {})
     }
 }
 
+@Preview(name = "Record Grid Card", showBackground = true, widthDp = 180, heightDp = 240)
 @Composable
-private fun PreferenceSwitchRow(
-    icon: @Composable () -> Unit,
-    title: String,
-    description: String,
-    checked: Boolean,
-    onCheckedChange: (Boolean) -> Unit,
-) {
-    Card(modifier = Modifier.debugOutline(RoundedCornerShape(22.dp)), shape = RoundedCornerShape(22.dp)) {
-        ListItem(
-            headlineContent = { Text(title) },
-            supportingContent = { Text(description) },
-            leadingContent = icon,
-            trailingContent = { Switch(checked = checked, onCheckedChange = onCheckedChange) },
+private fun RecordGridCardPreview() {
+    PreviewSurface {
+        RecordGridCard(record = previewRecordSummary(), onClick = {})
+    }
+}
+
+@Preview(name = "Record Carousel Card", showBackground = true, widthDp = 280, heightDp = 360)
+@Composable
+private fun RecordCarouselCardPreview() {
+    PreviewSurface {
+        RecordCarouselCard(record = previewRecordSummary(), onClick = {})
+    }
+}
+
+@Preview(name = "Media Attachment Card", showBackground = true, widthDp = 220, heightDp = 300)
+@Composable
+private fun MediaAttachmentCardPreview() {
+    PreviewSurface {
+        MediaAttachmentCard(attachment = previewMediaAttachment())
+    }
+}
+
+@Preview(name = "Version Card", showBackground = true, widthDp = 360, heightDp = 160)
+@Composable
+private fun VersionCardPreview() {
+    PreviewSurface {
+        VersionCard(version = previewVersion())
+    }
+}
+
+@Preview(name = "Category Visual", showBackground = true, widthDp = 160, heightDp = 160)
+@Composable
+private fun CategoryVisualPreview() {
+    PreviewSurface {
+        CategoryVisual(asset = "sport", category = "运动", modifier = Modifier.size(128.dp))
+    }
+}
+
+@Preview(name = "Metadata Row", showBackground = true, widthDp = 360, heightDp = 80)
+@Composable
+private fun MetadataRowPreview() {
+    PreviewSurface {
+        MetadataRow(detail = previewRecordDetail())
+    }
+}
+
+@Preview(name = "Empty State", showBackground = true, widthDp = 360, heightDp = 260)
+@Composable
+private fun EmptyStatePreview() {
+    PreviewSurface {
+        EmptyState(
+            title = stringResource(R.string.empty_records_title),
+            body = stringResource(R.string.empty_records_body),
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(220.dp),
         )
     }
 }
-
-@Composable
-private fun PreferenceStaticRow(
-    icon: @Composable () -> Unit,
-    title: String,
-    description: String,
-) {
-    Card(modifier = Modifier.debugOutline(RoundedCornerShape(22.dp)), shape = RoundedCornerShape(22.dp)) {
-        ListItem(
-            headlineContent = { Text(title) },
-            supportingContent = { Text(description) },
-            leadingContent = icon,
-        )
-    }
-}
-
-private fun preferenceValue(preferences: List<PreferenceItem>, key: String): String =
-    preferences.firstOrNull { it.key == key }?.value.orEmpty()
-
-@Composable
-private fun localizedPreferenceValue(preferences: List<PreferenceItem>, key: String): String =
-    when (val value = preferenceValue(preferences, key)) {
-        "all_categories" -> stringResource(R.string.preference_all_categories)
-        "system" -> stringResource(R.string.preference_follow_system)
-        "local_uri" -> stringResource(R.string.preference_local_uri)
-        else -> value
-    }
 
 private fun formatTimestamp(timestamp: Long, pattern: String): String =
     SimpleDateFormat(pattern, Locale.getDefault()).format(Date(timestamp))

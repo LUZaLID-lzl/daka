@@ -8,6 +8,7 @@
     <string name="home_greeting">早安 👋</string>
     <string name="home_subtitle">今天也记录一点生活吧</string>
     <string name="home_quote">“种一棵树最好的时间是二十年前，其次是现在。”</string>
+    <string name="home_shuffle_group">随机换一组</string>
 
     <string name="screen_records">记录</string>
     <string name="screen_profile">我的</string>
@@ -59,6 +60,7 @@
     <string name="preference_categories">推荐分类偏好</string>
     <string name="preference_section_appearance">外观与数据</string>
     <string name="preference_theme">主题模式</string>
+    <string name="preference_background">背景样式</string>
     <string name="preference_media_strategy">默认媒体保存策略</string>
     <string name="preference_debug_outline">显示 UI 外边框</string>
     <string name="preference_debug_outline_description">用于检查页面布局边界</string>
@@ -67,6 +69,12 @@
     <string name="preference_default_reminder_time">21:30</string>
     <string name="preference_all_categories">全部分类</string>
     <string name="preference_follow_system">跟随系统</string>
+    <string name="preference_light">浅色</string>
+    <string name="preference_dark">深色</string>
+    <string name="preference_background_mist">雾白</string>
+    <string name="preference_background_sunrise">晨光</string>
+    <string name="preference_background_forest">绿洲</string>
+    <string name="preference_background_night">夜色</string>
     <string name="preference_local_uri">保存本地 URI</string>
 
     <string name="profile_local_first">本地优先</string>

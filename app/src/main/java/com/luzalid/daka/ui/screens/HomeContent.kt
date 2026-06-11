@@ -2,29 +2,30 @@ package com.luzalid.daka.ui.screens
 
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.pager.HorizontalPager
-import androidx.compose.foundation.pager.PageSize
-import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -36,6 +37,7 @@ import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.LocalDining
 import androidx.compose.material.icons.filled.MenuBook
 import androidx.compose.material.icons.filled.Movie
+import androidx.compose.material.icons.filled.Shuffle
 import androidx.compose.material.icons.filled.Spa
 import androidx.compose.material.icons.filled.Work
 import androidx.compose.material3.Icon
@@ -43,11 +45,14 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
@@ -56,134 +61,240 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import com.luzalid.daka.model.Recommendation
 import com.luzalid.daka.R
-import kotlin.math.absoluteValue
-import kotlinx.coroutines.launch
+import kotlin.math.abs
 
 @Composable
 internal fun HomeRecommendationStage(
     recommendations: List<Recommendation>,
-    onPageChanged: (Int) -> Unit,
+    activeIndex: Int,
+    dragDistance: Float,
+    onDragDistanceChange: (Float) -> Unit,
+    onSwipe: (Int) -> Unit,
+    onActiveIndexChange: (Int) -> Unit,
     onRecord: (Recommendation) -> Unit,
 ) {
     if (recommendations.isEmpty()) return
     BoxWithConstraints(
         modifier = Modifier
             .fillMaxWidth()
-            .height(390.dp)
+            .height(326.dp)
             .debugOutline(),
-        contentAlignment = Alignment.BottomCenter,
+        contentAlignment = Alignment.Center,
     ) {
         val itemCount = recommendations.size
-        val pageWidth = (maxWidth - 126.dp).coerceIn(238.dp, 270.dp)
-        val pagerHeight = 390.dp
-        val initialPage = remember(itemCount) {
-            if (itemCount <= 1) {
-                0
-            } else {
-                val middle = Int.MAX_VALUE / 2
-                middle - middle % itemCount
-            }
-        }
-        val pagerState = rememberPagerState(
-            initialPage = initialPage,
-            pageCount = { if (itemCount <= 1) 1 else Int.MAX_VALUE },
-        )
-        val scope = rememberCoroutineScope()
-        LaunchedEffect(pagerState.currentPage) {
-            onPageChanged(if (itemCount == 0) 0 else pagerState.currentPage % itemCount)
-        }
-        Box(
-            modifier = Modifier
-                .width(pageWidth + 112.dp)
-                .height(90.dp)
-                .align(Alignment.BottomCenter)
-                .offset(y = (-4).dp)
-                .clip(RoundedCornerShape(999.dp))
-                .background(
-                    Brush.radialGradient(
-                        colors = listOf(
-                            Color(0x26240F00),
-                            Color.Transparent,
-                        ),
-                    ),
-                ),
-        )
-        HorizontalPager(
-            state = pagerState,
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(pagerHeight)
-                .align(Alignment.TopCenter)
-                .zIndex(1f),
-            pageSize = PageSize.Fixed(pageWidth),
-            contentPadding = PaddingValues(horizontal = (maxWidth - pageWidth) / 2),
-            pageSpacing = (-32).dp,
-            userScrollEnabled = itemCount > 1,
-        ) { page ->
-            val itemIndex = if (itemCount == 0) 0 else page % itemCount
-            val recommendation = recommendations[itemIndex]
-            val offset = ((pagerState.currentPage - page) + pagerState.currentPageOffsetFraction)
-                .coerceIn(-1f, 1f)
-            val distance = offset.absoluteValue
-            val focus = 1f - distance
-            val scale = 0.78f + focus * 0.22f
-            val alpha = 0.34f + focus * 0.66f
-            val rotation = offset * -14f
-            val rotationY = offset * 20f
-            val xShift = 26.dp * offset
-            val yShift = (-68).dp * distance
-            val blurRadius = 2.4.dp * distance
-            val transformOrigin = when {
-                offset > 0f -> TransformOrigin(1f, 1f)
-                offset < 0f -> TransformOrigin(0f, 1f)
-                else -> TransformOrigin.Center
-            }
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(top = 8.dp, bottom = 76.dp),
-                contentAlignment = Alignment.Center,
-            ) {
-                DailyWalkCard(
+        val stackKey = remember(recommendations) { recommendations.joinToString { it.id } }
+        val currentIndex = activeIndex.coerceIn(0, itemCount - 1)
+
+        val pageWidth = (maxWidth - 128.dp).coerceIn(214.dp, 246.dp)
+        recommendations
+            .mapIndexed { index, recommendation ->
+                StackedCardSpec(
+                    index = index,
+                    depth = cardDepth(index = index, activeIndex = currentIndex, itemCount = itemCount),
                     recommendation = recommendation,
-                    onRecord = {
-                        if (page == pagerState.currentPage && pagerState.currentPageOffsetFraction.absoluteValue < 0.35f) {
-                            onRecord(recommendation)
-                        } else {
-                            scope.launch { pagerState.animateScrollToPage(page) }
-                        }
-                    },
-                    modifier = Modifier
-                        .width(pageWidth)
-                        .height(306.dp)
-                        .zIndex(10f - distance)
-                        .blur(blurRadius)
-                        .graphicsLayer {
-                            this.transformOrigin = transformOrigin
-                            scaleX = scale
-                            scaleY = scale
-                            this.alpha = alpha
-                            rotationZ = rotation
-                            this.rotationY = rotationY
-                            translationX = xShift.toPx()
-                            translationY = yShift.toPx()
-                            cameraDistance = 14f * density
-                        },
                 )
             }
-        }
+            .sortedByDescending { it.depth }
+            .forEach { spec ->
+                key(spec.recommendation.id) {
+                    AnimatedStackedCard(
+                        spec = spec,
+                        itemCount = itemCount,
+                        pageWidth = pageWidth,
+                        stackKey = stackKey,
+                        dragDistance = dragDistance,
+                        onDragDistanceChange = onDragDistanceChange,
+                        onSwipe = onSwipe,
+                        onActivate = { onActiveIndexChange(spec.index) },
+                        onRecord = { onRecord(spec.recommendation) },
+                    )
+                }
+            }
     }
 }
+
+@Composable
+private fun AnimatedStackedCard(
+    spec: StackedCardSpec,
+    itemCount: Int,
+    pageWidth: androidx.compose.ui.unit.Dp,
+    stackKey: String,
+    dragDistance: Float,
+    onDragDistanceChange: (Float) -> Unit,
+    onSwipe: (Int) -> Unit,
+    onActivate: () -> Unit,
+    onRecord: () -> Unit,
+) {
+    val isFront = spec.depth == 0
+    val shape = RoundedCornerShape(if (isFront) 28.dp else 30.dp)
+    val baseHeight = 302.dp
+    val widthScale = when (spec.depth) {
+        1 -> 0.92f
+        2 -> 0.90f
+        else -> 1f
+    }
+    val heightScale = when (spec.depth) {
+        1 -> 288f / 302f
+        2 -> 282f / 302f
+        else -> 1f
+    }
+    val xTarget = when (spec.depth) {
+        1 -> -48f
+        2 -> 48f
+        else -> 0f
+    }
+    val yTarget = when (spec.depth) {
+        1 -> -18f
+        2 -> -30f
+        else -> 28f
+    }
+    val rotationTarget = when (spec.depth) {
+        1 -> -8f
+        2 -> 7f
+        else -> 0f
+    }
+    val alphaTarget = when (spec.depth) {
+        1 -> 0.94f
+        2 -> 0.88f
+        else -> 1f
+    }
+    val transition = tween<Float>(durationMillis = 360, easing = FastOutSlowInEasing)
+    val animatedScaleX by animateFloatAsState(
+        targetValue = widthScale,
+        animationSpec = transition,
+        label = "stacked-card-scale-x",
+    )
+    val animatedScaleY by animateFloatAsState(
+        targetValue = heightScale,
+        animationSpec = transition,
+        label = "stacked-card-scale-y",
+    )
+    val animatedX by animateFloatAsState(
+        targetValue = xTarget,
+        animationSpec = transition,
+        label = "stacked-card-x",
+    )
+    val animatedY by animateFloatAsState(
+        targetValue = yTarget,
+        animationSpec = transition,
+        label = "stacked-card-y",
+    )
+    val animatedRotation by animateFloatAsState(
+        targetValue = rotationTarget,
+        animationSpec = transition,
+        label = "stacked-card-rotation",
+    )
+    val animatedAlpha by animateFloatAsState(
+        targetValue = alphaTarget,
+        animationSpec = transition,
+        label = "stacked-card-alpha",
+    )
+    val idleTransition = rememberInfiniteTransition(label = "stacked-card-idle-${spec.index}")
+    val idleMotion by idleTransition.animateFloat(
+        initialValue = -1f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(
+                durationMillis = 2600 + spec.depth * 260,
+                easing = FastOutSlowInEasing,
+            ),
+            repeatMode = RepeatMode.Reverse,
+        ),
+        label = "stacked-card-idle-float",
+    )
+    val swipeModifier = if (isFront && itemCount > 1) {
+        Modifier.pointerInput(stackKey) {
+            var totalDrag = 0f
+            detectHorizontalDragGestures(
+                onDragStart = {
+                    totalDrag = 0f
+                    onDragDistanceChange(0f)
+                },
+                onHorizontalDrag = { _, dragAmount ->
+                    totalDrag = (totalDrag + dragAmount).coerceIn(-140f, 140f)
+                    onDragDistanceChange(totalDrag)
+                },
+                onDragEnd = {
+                    if (abs(totalDrag) > 42f) {
+                        onSwipe(if (totalDrag < 0f) -1 else 1)
+                    }
+                    totalDrag = 0f
+                    onDragDistanceChange(0f)
+                },
+                onDragCancel = {
+                    totalDrag = 0f
+                    onDragDistanceChange(0f)
+                },
+            )
+        }
+    } else {
+        Modifier
+    }
+
+    Box(
+        modifier = Modifier
+            .width(pageWidth)
+            .height(baseHeight)
+            .zIndex(10f - spec.depth)
+            .graphicsLayer {
+                val dragProgress = if (isFront) dragDistance / 140f else 0f
+                val idleY = idleMotion * if (isFront) 5f else 2.5f
+                val idleRotation = idleMotion * if (isFront) 0.8f else 0.35f
+                translationX = animatedX.dp.toPx() + if (isFront) dragDistance else 0f
+                translationY = animatedY.dp.toPx() + idleY
+                rotationZ = animatedRotation + idleRotation + dragProgress * 7f
+                alpha = animatedAlpha
+                scaleX = animatedScaleX * if (isFront) 1f - abs(dragProgress) * 0.025f else 1f
+                scaleY = animatedScaleY * if (isFront) 1f - abs(dragProgress) * 0.025f else 1f
+                transformOrigin = TransformOrigin(0.5f, 0.5f)
+            }
+            .then(swipeModifier),
+        contentAlignment = Alignment.Center,
+    ) {
+        DailyWalkCard(
+            recommendation = spec.recommendation,
+            onRecord = {
+                if (isFront) {
+                    onRecord()
+                } else {
+                    onActivate()
+                }
+            },
+            modifier = Modifier
+                .fillMaxSize()
+                .clip(shape),
+        )
+    }
+}
+
+private fun cardDepth(
+    index: Int,
+    activeIndex: Int,
+    itemCount: Int,
+): Int {
+    if (index == activeIndex) return 0
+    if (itemCount <= 1) return 0
+    if (index == (activeIndex + 1) % itemCount) return 1
+    return 2
+}
+
+private data class StackedCardSpec(
+    val index: Int,
+    val depth: Int,
+    val recommendation: Recommendation,
+)
 
 @Composable
 private fun DailyWalkCard(
@@ -192,18 +303,21 @@ private fun DailyWalkCard(
     modifier: Modifier = Modifier,
 ) {
     val shape = RoundedCornerShape(30.dp)
+    val palette = remember(recommendation.imageAsset) {
+        recommendationPalette(recommendation.imageAsset)
+    }
     Box(
         modifier = modifier
             .shadow(
                 elevation = 36.dp,
                 shape = shape,
                 clip = false,
-                ambientColor = Color(0x2A32200E),
-                spotColor = Color(0x2032200E),
+                ambientColor = palette.shadow,
+                spotColor = palette.shadow.copy(alpha = 0.14f),
             )
             .clip(shape)
-            .background(Color(0xFF332500))
-            .border(1.dp, Color.White.copy(alpha = 0.14f), shape)
+            .background(palette.gradient.last())
+            .border(1.dp, palette.stroke, shape)
             .clickable(onClick = onRecord)
             .debugOutline(shape),
     ) {
@@ -215,8 +329,8 @@ private fun DailyWalkCard(
                 .background(
                     Brush.radialGradient(
                         colors = listOf(
-                            Color(0x5CFFF5D2),
-                            Color(0x18FFF5D2),
+                            palette.glow.copy(alpha = 0.42f),
+                            palette.glow.copy(alpha = 0.14f),
                             Color.Transparent,
                         ),
                         center = Offset(0.5f, 0f),
@@ -229,11 +343,7 @@ private fun DailyWalkCard(
                 .fillMaxSize()
                 .background(
                     Brush.verticalGradient(
-                        listOf(
-                            Color(0xFFE8D7A6),
-                            Color(0xFFA38F55),
-                            Color(0xFF5C4A1F),
-                        ),
+                        palette.gradient,
                     ),
                 ),
         )
@@ -252,8 +362,8 @@ private fun DailyWalkCard(
                     Brush.verticalGradient(
                         listOf(
                             Color.White.copy(alpha = 0.03f),
-                            Color.Black.copy(alpha = 0.10f),
-                            Color(0xFF1E1708).copy(alpha = 0.58f),
+                            Color.Black.copy(alpha = 0.08f),
+                            palette.scrim.copy(alpha = 0.66f),
                         ),
                     ),
                 ),
@@ -269,6 +379,7 @@ private fun DailyWalkCard(
             SuggestionPill(
                 text = recommendation.category,
                 imageAsset = recommendation.imageAsset,
+                palette = palette,
             )
         }
         Column(
@@ -288,19 +399,6 @@ private fun DailyWalkCard(
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis,
             )
-            Spacer(Modifier.height(10.dp))
-            Text(
-                text = recommendation.description,
-                color = Color.White.copy(alpha = 0.82f),
-                style = MaterialTheme.typography.titleMedium.copy(
-                    fontSize = 13.sp,
-                    lineHeight = 20.sp,
-                    fontWeight = FontWeight.Normal,
-                    letterSpacing = 0.15.sp,
-                ),
-                maxLines = 2,
-                overflow = TextOverflow.Ellipsis,
-            )
         }
     }
 }
@@ -309,6 +407,7 @@ private fun DailyWalkCard(
 private fun SuggestionPill(
     text: String,
     imageAsset: String,
+    palette: RecommendationPalette,
 ) {
     val icon = when (imageAsset) {
         "food" -> Icons.Filled.LocalDining
@@ -326,10 +425,10 @@ private fun SuggestionPill(
     Row(
         modifier = Modifier
             .clip(RoundedCornerShape(999.dp))
-            .background(Color(0xFFFFFCF5).copy(alpha = 0.92f))
+            .background(palette.pillBackground)
             .border(
                 width = 1.dp,
-                color = Color.White.copy(alpha = 0.58f),
+                color = palette.pillStroke,
                 shape = RoundedCornerShape(999.dp),
             )
             .padding(horizontal = 11.dp, vertical = 7.dp)
@@ -340,12 +439,12 @@ private fun SuggestionPill(
         Icon(
             icon,
             contentDescription = null,
-            tint = Color(0xFF725018),
+            tint = palette.pillForeground,
             modifier = Modifier.size(15.dp),
         )
         Text(
             text = text,
-            color = Color(0xFF604315),
+            color = palette.pillForeground,
             style = MaterialTheme.typography.titleMedium.copy(
                 fontSize = 12.sp,
                 lineHeight = 15.sp,
@@ -472,5 +571,150 @@ internal fun HomeQuoteCard() {
                 fontWeight = FontWeight.Medium,
             ),
         )
+    }
+}
+
+@Composable
+internal fun HomeRecommendationDetail(
+    recommendation: Recommendation,
+    onShuffle: () -> Unit,
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 54.dp)
+            .debugOutline(),
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Text(
+            text = recommendation.description,
+            color = Color(0xFF8F9398),
+            textAlign = TextAlign.Center,
+            style = MaterialTheme.typography.titleMedium.copy(
+                fontSize = 15.sp,
+                lineHeight = 21.sp,
+                fontWeight = FontWeight.Medium,
+            ),
+            maxLines = 3,
+            overflow = TextOverflow.Ellipsis,
+        )
+        Spacer(Modifier.height(20.dp))
+        Row(
+            modifier = Modifier
+                .height(48.dp)
+                .clip(RoundedCornerShape(999.dp))
+                .background(Color(0xFF2F6CE5))
+                .clickable(onClick = onShuffle)
+                .padding(horizontal = 24.dp)
+                .debugOutline(RoundedCornerShape(999.dp)),
+            horizontalArrangement = Arrangement.spacedBy(9.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Icon(
+                Icons.Filled.Shuffle,
+                contentDescription = null,
+                tint = Color.White,
+                modifier = Modifier.size(19.dp),
+            )
+            Text(
+                text = stringResource(R.string.home_shuffle_group),
+                color = Color.White,
+                style = MaterialTheme.typography.titleMedium.copy(
+                    fontSize = 15.sp,
+                    lineHeight = 18.sp,
+                    fontWeight = FontWeight.Bold,
+                ),
+            )
+        }
+    }
+}
+
+private fun previewRecommendations() = listOf(
+    Recommendation(
+        id = "food",
+        title = "吃一份黄焖鸡米饭",
+        description = "给今天留一个有味道的片段，记录这顿饭和当时的心情。",
+        category = "美食",
+        imageAsset = "food",
+    ),
+    Recommendation(
+        id = "sport",
+        title = "饭后散步 20 分钟",
+        description = "把脚步、空气和身体状态记录下来。",
+        category = "运动",
+        imageAsset = "sport",
+    ),
+    Recommendation(
+        id = "social",
+        title = "给一位朋友发一条问候",
+        description = "记录你们聊到了什么，也记录主动联系的感受。",
+        category = "社交",
+        imageAsset = "social",
+    ),
+)
+
+@Preview(name = "Home Card Stack", showBackground = true, widthDp = 360, heightDp = 380)
+@Composable
+private fun HomeRecommendationStagePreview() {
+    var activeIndex by remember { mutableIntStateOf(0) }
+    var dragDistance by remember { mutableFloatStateOf(0f) }
+    MaterialTheme {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(380.dp)
+                .background(Color(0xFFF7F8FA)),
+            contentAlignment = Alignment.Center,
+        ) {
+            HomeRecommendationStage(
+                recommendations = previewRecommendations(),
+                activeIndex = activeIndex,
+                dragDistance = dragDistance,
+                onDragDistanceChange = { dragDistance = it },
+                onSwipe = { direction ->
+                    activeIndex = if (direction < 0) {
+                        (activeIndex + 1) % previewRecommendations().size
+                    } else {
+                        (activeIndex - 1 + previewRecommendations().size) % previewRecommendations().size
+                    }
+                },
+                onActiveIndexChange = { activeIndex = it },
+                onRecord = {},
+            )
+        }
+    }
+}
+
+@Preview(name = "Home Detail CTA", showBackground = true, widthDp = 360, heightDp = 180)
+@Composable
+private fun HomeRecommendationDetailPreview() {
+    MaterialTheme {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(Color(0xFFF7F8FA))
+                .padding(vertical = 24.dp),
+        ) {
+            HomeRecommendationDetail(
+                recommendation = previewRecommendations().first(),
+                onShuffle = {},
+            )
+        }
+    }
+}
+
+@Preview(name = "Home Quote", showBackground = true, widthDp = 360, heightDp = 120)
+@Composable
+private fun HomeQuoteCardPreview() {
+    MaterialTheme {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(Color(0xFFF7F8FA))
+                .padding(vertical = 24.dp),
+            contentAlignment = Alignment.Center,
+        ) {
+            HomeQuoteCard()
+        }
     }
 }

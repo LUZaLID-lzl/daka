@@ -8,6 +8,7 @@
     <string name="home_greeting">Good morning 👋</string>
     <string name="home_subtitle">Capture a little piece of life today.</string>
     <string name="home_quote">“The best time to plant a tree was 20 years ago. The second best time is now.”</string>
+    <string name="home_shuffle_group">Shuffle set</string>
 
     <string name="screen_records">Records</string>
     <string name="screen_profile">Profile</string>
@@ -59,6 +60,7 @@
     <string name="preference_categories">Preferred Categories</string>
     <string name="preference_section_appearance">Appearance &amp; Data</string>
     <string name="preference_theme">Theme</string>
+    <string name="preference_background">Background</string>
     <string name="preference_media_strategy">Default Media Storage</string>
     <string name="preference_debug_outline">Show UI Outlines</string>
     <string name="preference_debug_outline_description">Displays layout boundaries for inspection.</string>
@@ -67,6 +69,12 @@
     <string name="preference_default_reminder_time">21:30</string>
     <string name="preference_all_categories">All categories</string>
     <string name="preference_follow_system">Follow system</string>
+    <string name="preference_light">Light</string>
+    <string name="preference_dark">Dark</string>
+    <string name="preference_background_mist">Mist</string>
+    <string name="preference_background_sunrise">Sunrise</string>
+    <string name="preference_background_forest">Forest</string>
+    <string name="preference_background_night">Night</string>
     <string name="preference_local_uri">Store local URI</string>
 
     <string name="profile_local_first">Local first</string>

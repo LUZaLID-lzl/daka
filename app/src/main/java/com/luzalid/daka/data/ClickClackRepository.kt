@@ -26,9 +26,10 @@ class ClickClackRepository(context: Context) {
         dao.insertRecommendations(RecommendationCatalog.builtIns(appContext.resources))
         seedPreference("show_daily_reminder", "false")
         seedPreference("reminder_time", appContext.getString(R.string.preference_default_reminder_time))
-        updatePreference("preferred_categories", "all_categories")
-        updatePreference("theme_mode", "system")
-        updatePreference("media_strategy", "local_uri")
+        seedPreference("preferred_categories", "all_categories")
+        seedPreference("theme_mode", "system")
+        seedPreference("background_style", "mist")
+        seedPreference("media_strategy", "local_uri")
         seedPreference("debug_ui_outline", "false")
     }
 

@@ -1,10 +1,10 @@
 package com.luzalid.daka.ui.screens
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -12,67 +12,102 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Explore
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.CalendarViewDay
+import androidx.compose.material.icons.filled.Groups
 import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.SelfImprovement
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import com.luzalid.daka.R
 
 @Composable
 internal fun HomeBottomNavigation(
     modifier: Modifier = Modifier,
     onHistory: () -> Unit,
     onProfile: () -> Unit,
+    onCreate: () -> Unit,
 ) {
-    val navigationShape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp)
-
-    Box(
+    val appearance = LocalAppAppearance.current
+    val createButtonColor = if (appearance.isDark) Color.White else Color.Black
+    val createIconColor = if (appearance.isDark) Color.Black else Color.White
+    Row(
         modifier = modifier
             .fillMaxWidth()
-            .height(76.dp)
+            .padding(horizontal = 18.dp, vertical = 20.dp)
+            .debugOutline(navigationShape),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        BottomDock(onHistory = onHistory, onProfile = onProfile, appearance = appearance)
+        Box(
+            modifier = Modifier
+                .size(56.dp)
+                .shadow(
+                    elevation = 18.dp,
+                    shape = CircleShape,
+                    clip = false,
+                    ambientColor = Color(0x30000000),
+                    spotColor = Color(0x24000000),
+                )
+                .clip(CircleShape)
+                .background(createButtonColor)
+                .clickable(onClick = onCreate)
+                .debugOutline(CircleShape),
+            contentAlignment = Alignment.Center,
+        ) {
+            Icon(Icons.Filled.Add, contentDescription = null, tint = createIconColor, modifier = Modifier.size(28.dp))
+        }
+    }
+}
+
+private val navigationShape = RoundedCornerShape(999.dp)
+
+@Composable
+private fun BottomDock(
+    onHistory: () -> Unit,
+    onProfile: () -> Unit,
+    appearance: AppAppearance,
+) {
+    Box(
+        modifier = Modifier
+            .width(190.dp)
+            .height(64.dp)
             .shadow(
-                elevation = 14.dp,
+                elevation = 15.dp,
                 shape = navigationShape,
                 clip = false,
-                ambientColor = Color(0x104A3520),
-                spotColor = Color(0x0A4A3520),
+                ambientColor = Color(0x183B342A),
+                spotColor = Color(0x123B342A),
             )
             .clip(navigationShape)
-            .background(Color(0xFFF2ECE3).copy(alpha = 0.98f))
-            .padding(horizontal = 22.dp, vertical = 6.dp)
+            .background(appearance.bottomDockColor)
+            .border(1.dp, appearance.bottomDockSelectedColor.copy(alpha = 0.78f), navigationShape)
+            .padding(horizontal = 12.dp)
             .debugOutline(navigationShape),
+        contentAlignment = Alignment.Center,
     ) {
         Row(
             modifier = Modifier.fillMaxSize(),
-            horizontalArrangement = Arrangement.spacedBy(
-                space = 38.dp,
-                alignment = Alignment.CenterHorizontally,
-            ),
+            horizontalArrangement = Arrangement.SpaceEvenly,
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            HomeNavItem(stringResource(R.string.nav_discover), selected = true, icon = { tint ->
-                Icon(Icons.Filled.Explore, contentDescription = null, tint = tint, modifier = Modifier.size(25.dp))
+            HomeNavItem(selected = true, hasBadge = false, appearance = appearance, icon = { tint ->
+                Icon(Icons.Filled.CalendarViewDay, contentDescription = null, tint = tint, modifier = Modifier.size(27.dp))
             }, onClick = {})
-            HomeNavItem(stringResource(R.string.nav_reflect), selected = false, icon = { tint ->
-                Icon(Icons.Filled.SelfImprovement, contentDescription = null, tint = tint, modifier = Modifier.size(25.dp))
+            HomeNavItem(selected = false, hasBadge = false, appearance = appearance, icon = { tint ->
+                Icon(Icons.Filled.Groups, contentDescription = null, tint = tint, modifier = Modifier.size(26.dp))
             }, onClick = onHistory)
-            HomeNavItem(stringResource(R.string.nav_profile), selected = false, icon = { tint ->
-                Icon(Icons.Filled.Person, contentDescription = null, tint = tint, modifier = Modifier.size(25.dp))
+            HomeNavItem(selected = false, hasBadge = true, appearance = appearance, icon = { tint ->
+                Icon(Icons.Filled.Person, contentDescription = null, tint = tint, modifier = Modifier.size(26.dp))
             }, onClick = onProfile)
         }
     }
@@ -80,39 +115,65 @@ internal fun HomeBottomNavigation(
 
 @Composable
 private fun HomeNavItem(
-    label: String,
     selected: Boolean,
+    hasBadge: Boolean,
+    appearance: AppAppearance,
     icon: @Composable (Color) -> Unit,
     onClick: () -> Unit,
 ) {
-    Column(
+    Box(
         modifier = Modifier
-            .width(68.dp)
+            .size(52.dp)
             .clickable(onClick = onClick)
             .debugOutline(),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(4.dp),
+        contentAlignment = Alignment.Center,
     ) {
         Box(
             modifier = Modifier
-                .width(if (selected) 48.dp else 38.dp)
-                .height(32.dp)
-                .clip(RoundedCornerShape(999.dp))
-                .background(if (selected) Color(0xFFF7DFA9) else Color.Transparent),
+                .size(44.dp)
+                .clip(RoundedCornerShape(13.dp))
+                .background(if (selected) appearance.bottomDockSelectedColor else Color.Transparent),
             contentAlignment = Alignment.Center,
         ) {
-            icon(if (selected) Color(0xFF6A4B05) else Color(0xFF4A4032))
+            icon(if (selected) appearance.bottomDockContentColor else appearance.bottomDockMutedColor)
         }
-        Text(
-            text = label,
-            color = Color(0xFF2E281F),
-            style = MaterialTheme.typography.bodyMedium.copy(
-                fontSize = 12.sp,
-                lineHeight = 13.sp,
-                fontWeight = FontWeight.Medium,
+        if (hasBadge) {
+            Box(
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .size(8.dp)
+                    .clip(CircleShape)
+                    .background(Color(0xFFFF5A52)),
+            )
+        }
+    }
+}
+
+@Preview(name = "Home Bottom Navigation", showBackground = true, widthDp = 360, heightDp = 120)
+@Composable
+private fun HomeBottomNavigationPreview() {
+    androidx.compose.material3.MaterialTheme {
+        androidx.compose.runtime.CompositionLocalProvider(
+            LocalAppAppearance provides AppAppearance(
+                isDark = false,
+                backgroundStyle = "mist",
+                backgroundBrush = androidx.compose.ui.graphics.Brush.verticalGradient(listOf(Color(0xFFF8F9FB), Color(0xFFEFF2F6))),
+                surfaceTint = Color(0xFFF7F8FA),
+                bottomDockColor = Color.White,
+                bottomDockSelectedColor = Color(0xFFF1F3F5),
+                bottomDockContentColor = Color(0xFF111111),
+                bottomDockMutedColor = Color(0xFF8A8F93),
             ),
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-        )
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(120.dp)
+                    .background(LocalAppAppearance.current.backgroundBrush),
+                contentAlignment = Alignment.BottomCenter,
+            ) {
+                HomeBottomNavigation(onHistory = {}, onProfile = {}, onCreate = {})
+            }
+        }
     }
 }
