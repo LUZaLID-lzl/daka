@@ -1,4 +1,4 @@
-package com.luzalid.clickclack.data
+package com.luzalid.daka.data
 
 import android.content.Context
 import androidx.room.Database

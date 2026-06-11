@@ -1,3 +1,108 @@
 <resources>
-    <string name="app_name">clickclack</string>
+    <string name="app_name">哒咔</string>
+
+    <string name="nav_discover">发现</string>
+    <string name="nav_reflect">回顾</string>
+    <string name="nav_profile">个人</string>
+
+    <string name="home_greeting">早安 👋</string>
+    <string name="home_subtitle">今天也记录一点生活吧</string>
+    <string name="home_quote">“种一棵树最好的时间是二十年前，其次是现在。”</string>
+
+    <string name="screen_records">记录</string>
+    <string name="screen_profile">我的</string>
+    <string name="screen_check_in">记录打卡</string>
+    <string name="screen_record_detail">记录详情</string>
+    <string name="screen_version_history">版本历史</string>
+    <string name="action_back">返回</string>
+    <string name="action_cancel">取消</string>
+    <string name="action_save">保存</string>
+    <string name="action_saving">保存中</string>
+    <string name="action_edit">编辑</string>
+    <string name="action_remove">移除</string>
+    <string name="action_add_image">添加图片</string>
+    <string name="action_add_video">添加视频</string>
+
+    <string name="field_title">标题</string>
+    <string name="field_content">发生了什么</string>
+    <string name="field_mood">心情</string>
+    <string name="field_location">地点</string>
+    <string name="field_tags">标签</string>
+    <string name="section_added_media">已添加媒体</string>
+    <string name="section_media">媒体</string>
+
+    <string name="history_mode_list">日期列表</string>
+    <string name="history_mode_grid">缩略图</string>
+    <string name="history_mode_carousel">走马灯</string>
+    <string name="empty_records_title">还没有记录</string>
+    <string name="empty_records_body">完成今日推荐后，这里会按日期倒序展示打卡日记。</string>
+    <string name="record_not_found_title">记录不存在</string>
+    <string name="record_not_found_body">这条记录可能已经被移除。</string>
+    <string name="empty_versions_title">暂无版本</string>
+    <string name="empty_versions_body">保存记录后会生成版本快照。</string>
+    <string name="version_number">第 %1$d 版</string>
+    <string name="current_version">当前版本</string>
+    <string name="record_updated">%1$s · 更新于 %2$s</string>
+    <string name="record_media_only">包含媒体记录</string>
+
+    <string name="media_image">图片</string>
+    <string name="media_video">视频</string>
+    <string name="media_image_attachment">图片附件</string>
+    <string name="media_video_attachment">视频附件</string>
+
+    <string name="metadata_mood">心情 %1$s</string>
+    <string name="metadata_location">地点 %1$s</string>
+    <string name="metadata_tags">标签 %1$s</string>
+
+    <string name="preference_section_recommendations">推荐与提醒</string>
+    <string name="preference_daily_reminder">每日提醒</string>
+    <string name="preference_categories">推荐分类偏好</string>
+    <string name="preference_section_appearance">外观与数据</string>
+    <string name="preference_theme">主题模式</string>
+    <string name="preference_media_strategy">默认媒体保存策略</string>
+    <string name="preference_debug_outline">显示 UI 外边框</string>
+    <string name="preference_debug_outline_description">用于检查页面布局边界</string>
+    <string name="preference_about">关于应用</string>
+    <string name="preference_about_description">哒咔 · 本地优先的每日打卡日记</string>
+    <string name="preference_default_reminder_time">21:30</string>
+    <string name="preference_all_categories">全部分类</string>
+    <string name="preference_follow_system">跟随系统</string>
+    <string name="preference_local_uri">保存本地 URI</string>
+
+    <string name="profile_local_first">本地优先</string>
+    <string name="profile_description">记录保存在本机 Room 数据库中，后续可映射账号、云同步和远程推荐。</string>
+
+    <string name="category_food">美食</string>
+    <string name="category_commute">通勤</string>
+    <string name="category_sport">运动</string>
+    <string name="category_work">工作</string>
+    <string name="category_fun">娱乐</string>
+    <string name="category_social">社交</string>
+    <string name="category_relax">放松</string>
+    <string name="category_home">家务</string>
+    <string name="category_study">学习</string>
+    <string name="category_explore">探索</string>
+
+    <string name="recommendation_food_title">吃一份黄焖鸡米饭</string>
+    <string name="recommendation_food_description">给今天留一个有味道的片段，记录这顿饭和当时的心情。</string>
+    <string name="recommendation_commute_title">换一种交通工具出行</string>
+    <string name="recommendation_commute_description">观察路上的节奏变化，写下你看到的一个细节。</string>
+    <string name="recommendation_sport_title">饭后散步 20 分钟</string>
+    <string name="recommendation_sport_description">把脚步、空气和身体状态记录下来。</string>
+    <string name="recommendation_work_title">整理一次桌面或待办列表</string>
+    <string name="recommendation_work_description">写下整理前后的变化，顺手记录一个最想推进的任务。</string>
+    <string name="recommendation_fun_title">看一集没看过的纪录片</string>
+    <string name="recommendation_fun_description">留下一个新知识，或者一个让你停顿的镜头。</string>
+    <string name="recommendation_social_title">给一位朋友发一条问候</string>
+    <string name="recommendation_social_description">记录你们聊到了什么，也记录主动联系的感受。</string>
+    <string name="recommendation_relax_title">睡前听 10 分钟轻音乐</string>
+    <string name="recommendation_relax_description">把入睡前的状态写下来，哪怕只有一句。</string>
+    <string name="recommendation_home_title">清理一个小角落</string>
+    <string name="recommendation_home_description">用几分钟让生活空间恢复一点秩序。</string>
+    <string name="recommendation_study_title">读完一篇短文章</string>
+    <string name="recommendation_study_description">记录一个观点，或者一个你想继续追问的问题。</string>
+    <string name="recommendation_explore_title">走进一家没去过的小店</string>
+    <string name="recommendation_explore_description">给陌生地点留一张图和一句评价。</string>
+
+    <string name="date_format_timestamp">MM-dd HH:mm</string>
 </resources>

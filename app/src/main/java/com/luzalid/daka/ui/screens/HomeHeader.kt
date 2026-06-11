@@ -1,4 +1,4 @@
-package com.luzalid.clickclack.ui.screens
+package com.luzalid.daka.ui.screens
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
@@ -26,10 +26,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.luzalid.daka.R
 
 @Composable
 internal fun HomeHeroHeader(
@@ -50,7 +52,7 @@ internal fun HomeHeroHeader(
         ) {
             Column {
                 Text(
-                    text = "早安 👋",
+                    text = stringResource(R.string.home_greeting),
                     color = Color(0xFF3D270A),
                     style = MaterialTheme.typography.displaySmall.copy(
                         fontSize = 32.sp,
@@ -60,7 +62,7 @@ internal fun HomeHeroHeader(
                 )
                 Spacer(Modifier.height(6.dp))
                 Text(
-                    text = "今天也记录一点生活吧",
+                    text = stringResource(R.string.home_subtitle),
                     color = Color(0xFF4B3B28),
                     style = MaterialTheme.typography.titleMedium.copy(
                         fontSize = 17.sp,
@@ -71,41 +73,7 @@ internal fun HomeHeroHeader(
             }
             HomeAvatar(onProfile = onProfile)
         }
-        Spacer(Modifier.height(30.dp))
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.Center,
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Text(
-                text = "$dateLabel • SUNNY",
-                color = Color(0xFF8F897F),
-                style = MaterialTheme.typography.titleSmall.copy(
-                    fontSize = 15.sp,
-                    lineHeight = 18.sp,
-                    fontWeight = FontWeight.Bold,
-                ),
-            )
-            Spacer(Modifier.width(8.dp))
-            Icon(
-                Icons.Filled.WbSunny,
-                contentDescription = null,
-                tint = Color(0xFF8F897F),
-                modifier = Modifier.size(16.dp),
-            )
-        }
-        Spacer(Modifier.height(8.dp))
-        Text(
-            text = "\"A beautiful day for a fresh start.\"",
-            modifier = Modifier.fillMaxWidth(),
-            color = Color(0xFF7B736A),
-            textAlign = TextAlign.Center,
-            style = MaterialTheme.typography.bodyLarge.copy(
-                fontSize = 16.sp,
-                lineHeight = 22.sp,
-                fontWeight = FontWeight.Medium,
-            ),
-        )
+        Spacer(Modifier.height(80.dp))
     }
 }
 

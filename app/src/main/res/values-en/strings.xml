@@ -1,0 +1,108 @@
+<resources>
+    <string name="app_name">Daka</string>
+
+    <string name="nav_discover">Discover</string>
+    <string name="nav_reflect">Reflect</string>
+    <string name="nav_profile">Profile</string>
+
+    <string name="home_greeting">Good morning 👋</string>
+    <string name="home_subtitle">Capture a little piece of life today.</string>
+    <string name="home_quote">“The best time to plant a tree was 20 years ago. The second best time is now.”</string>
+
+    <string name="screen_records">Records</string>
+    <string name="screen_profile">Profile</string>
+    <string name="screen_check_in">Create Record</string>
+    <string name="screen_record_detail">Record Details</string>
+    <string name="screen_version_history">Version History</string>
+    <string name="action_back">Back</string>
+    <string name="action_cancel">Cancel</string>
+    <string name="action_save">Save</string>
+    <string name="action_saving">Saving</string>
+    <string name="action_edit">Edit</string>
+    <string name="action_remove">Remove</string>
+    <string name="action_add_image">Add Image</string>
+    <string name="action_add_video">Add Video</string>
+
+    <string name="field_title">Title</string>
+    <string name="field_content">What happened?</string>
+    <string name="field_mood">Mood</string>
+    <string name="field_location">Location</string>
+    <string name="field_tags">Tags</string>
+    <string name="section_added_media">Added Media</string>
+    <string name="section_media">Media</string>
+
+    <string name="history_mode_list">By Date</string>
+    <string name="history_mode_grid">Thumbnails</string>
+    <string name="history_mode_carousel">Carousel</string>
+    <string name="empty_records_title">No records yet</string>
+    <string name="empty_records_body">Complete today’s suggestion and your journal will appear here in reverse chronological order.</string>
+    <string name="record_not_found_title">Record not found</string>
+    <string name="record_not_found_body">This record may have been removed.</string>
+    <string name="empty_versions_title">No versions yet</string>
+    <string name="empty_versions_body">A version snapshot will be created after you save the record.</string>
+    <string name="version_number">Version %1$d</string>
+    <string name="current_version">Current</string>
+    <string name="record_updated">%1$s · Updated %2$s</string>
+    <string name="record_media_only">Media record</string>
+
+    <string name="media_image">Image</string>
+    <string name="media_video">Video</string>
+    <string name="media_image_attachment">Image attachment</string>
+    <string name="media_video_attachment">Video attachment</string>
+
+    <string name="metadata_mood">Mood: %1$s</string>
+    <string name="metadata_location">Location: %1$s</string>
+    <string name="metadata_tags">Tags: %1$s</string>
+
+    <string name="preference_section_recommendations">Suggestions &amp; Reminders</string>
+    <string name="preference_daily_reminder">Daily Reminder</string>
+    <string name="preference_categories">Preferred Categories</string>
+    <string name="preference_section_appearance">Appearance &amp; Data</string>
+    <string name="preference_theme">Theme</string>
+    <string name="preference_media_strategy">Default Media Storage</string>
+    <string name="preference_debug_outline">Show UI Outlines</string>
+    <string name="preference_debug_outline_description">Displays layout boundaries for inspection.</string>
+    <string name="preference_about">About</string>
+    <string name="preference_about_description">Daka · A local-first daily journal</string>
+    <string name="preference_default_reminder_time">21:30</string>
+    <string name="preference_all_categories">All categories</string>
+    <string name="preference_follow_system">Follow system</string>
+    <string name="preference_local_uri">Store local URI</string>
+
+    <string name="profile_local_first">Local first</string>
+    <string name="profile_description">Records are stored in the local Room database and can later support accounts, cloud sync, and remote suggestions.</string>
+
+    <string name="category_food">Food</string>
+    <string name="category_commute">Commute</string>
+    <string name="category_sport">Fitness</string>
+    <string name="category_work">Work</string>
+    <string name="category_fun">Entertainment</string>
+    <string name="category_social">Social</string>
+    <string name="category_relax">Relaxation</string>
+    <string name="category_home">Home</string>
+    <string name="category_study">Learning</string>
+    <string name="category_explore">Explore</string>
+
+    <string name="recommendation_food_title">Enjoy a comforting meal</string>
+    <string name="recommendation_food_description">Save a flavorful moment from today and note how the meal made you feel.</string>
+    <string name="recommendation_commute_title">Try a different way to travel</string>
+    <string name="recommendation_commute_description">Notice how the rhythm changes and write down one detail from the journey.</string>
+    <string name="recommendation_sport_title">Take a 20-minute walk after dinner</string>
+    <string name="recommendation_sport_description">Record your pace, the air, and how your body feels.</string>
+    <string name="recommendation_work_title">Tidy your desk or task list</string>
+    <string name="recommendation_work_description">Note what changed and choose one task you most want to move forward.</string>
+    <string name="recommendation_fun_title">Watch a documentary you have not seen</string>
+    <string name="recommendation_fun_description">Save one new fact or a scene that made you pause.</string>
+    <string name="recommendation_social_title">Send a message to a friend</string>
+    <string name="recommendation_social_description">Record what you talked about and how it felt to reach out.</string>
+    <string name="recommendation_relax_title">Listen to soft music before bed</string>
+    <string name="recommendation_relax_description">Write down how you feel before sleep, even if it is only one sentence.</string>
+    <string name="recommendation_home_title">Tidy one small corner</string>
+    <string name="recommendation_home_description">Take a few minutes to bring a little order back to your space.</string>
+    <string name="recommendation_study_title">Read one short article</string>
+    <string name="recommendation_study_description">Record one idea or a question you want to explore further.</string>
+    <string name="recommendation_explore_title">Visit a shop you have never tried</string>
+    <string name="recommendation_explore_description">Save a photo and one sentence about the unfamiliar place.</string>
+
+    <string name="date_format_timestamp">MMM d, HH:mm</string>
+</resources>

@@ -1,4 +1,4 @@
-package com.luzalid.clickclack
+package com.luzalid.daka
 
 import org.junit.Test
 

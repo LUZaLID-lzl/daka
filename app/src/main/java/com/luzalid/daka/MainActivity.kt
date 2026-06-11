@@ -1,4 +1,4 @@
-package com.luzalid.clickclack
+package com.luzalid.daka
 
 import android.graphics.Color
 import android.os.Bundle
@@ -6,9 +6,9 @@ import androidx.activity.SystemBarStyle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import com.luzalid.clickclack.data.ClickClackRepository
-import com.luzalid.clickclack.ui.screens.ClickClackApp
-import com.luzalid.clickclack.ui.theme.ClickclackTheme
+import com.luzalid.daka.data.ClickClackRepository
+import com.luzalid.daka.ui.screens.ClickClackApp
+import com.luzalid.daka.ui.theme.ClickclackTheme
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {

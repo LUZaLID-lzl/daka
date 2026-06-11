@@ -1,4 +1,4 @@
-package com.luzalid.clickclack.model
+package com.luzalid.daka.model
 
 enum class MediaType(val dbValue: String) {
     Image("image"),

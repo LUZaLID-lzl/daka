@@ -1,4 +1,4 @@
-package com.luzalid.clickclack.ui.screens
+package com.luzalid.daka.ui.screens
 
 import android.content.Intent
 import android.graphics.BitmapFactory
@@ -119,6 +119,7 @@ import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.input.KeyboardCapitalization
@@ -126,16 +127,16 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
-import com.luzalid.clickclack.R
-import com.luzalid.clickclack.data.ClickClackRepository
-import com.luzalid.clickclack.model.MediaAttachment
-import com.luzalid.clickclack.model.MediaAttachmentDraft
-import com.luzalid.clickclack.model.MediaType
-import com.luzalid.clickclack.model.PreferenceItem
-import com.luzalid.clickclack.model.Recommendation
-import com.luzalid.clickclack.model.RecordDetail
-import com.luzalid.clickclack.model.RecordSummary
-import com.luzalid.clickclack.model.RecordVersion
+import com.luzalid.daka.R
+import com.luzalid.daka.data.ClickClackRepository
+import com.luzalid.daka.model.MediaAttachment
+import com.luzalid.daka.model.MediaAttachmentDraft
+import com.luzalid.daka.model.MediaType
+import com.luzalid.daka.model.PreferenceItem
+import com.luzalid.daka.model.Recommendation
+import com.luzalid.daka.model.RecordDetail
+import com.luzalid.daka.model.RecordSummary
+import com.luzalid.daka.model.RecordVersion
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -194,13 +195,13 @@ fun ClickClackApp(repository: ClickClackRepository) {
                 topBar = {
                     when (val current = route) {
                         AppRoute.Home -> Unit
-                        AppRoute.History -> CenterAlignedTopAppBar(title = { Text("记录") })
-                        AppRoute.Profile -> CenterAlignedTopAppBar(title = { Text("我的") })
-                        is AppRoute.Edit -> BackTopBar("记录打卡") {
+                        AppRoute.History -> CenterAlignedTopAppBar(title = { Text(stringResource(R.string.screen_records)) })
+                        AppRoute.Profile -> CenterAlignedTopAppBar(title = { Text(stringResource(R.string.screen_profile)) })
+                        is AppRoute.Edit -> BackTopBar(stringResource(R.string.screen_check_in)) {
                             route = current.recordId?.let { AppRoute.Detail(it) } ?: AppRoute.Home
                         }
-                        is AppRoute.Detail -> BackTopBar("记录详情") { route = AppRoute.History }
-                        is AppRoute.Versions -> BackTopBar("版本历史") { route = AppRoute.Detail(current.recordId) }
+                        is AppRoute.Detail -> BackTopBar(stringResource(R.string.screen_record_detail)) { route = AppRoute.History }
+                        is AppRoute.Versions -> BackTopBar(stringResource(R.string.screen_version_history)) { route = AppRoute.Detail(current.recordId) }
                     }
                 },
             ) { padding ->
@@ -270,7 +271,7 @@ private fun BackTopBar(title: String, onBack: () -> Unit) {
         title = { Text(title) },
         navigationIcon = {
             IconButton(onClick = onBack) {
-                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "返回")
+                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.action_back))
             }
         },
     )
@@ -367,7 +368,7 @@ private fun EditRecordScreen(
                 value = title,
                 onValueChange = { title = it },
                 modifier = Modifier.fillMaxWidth(),
-                label = { Text("标题") },
+                label = { Text(stringResource(R.string.field_title)) },
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
             )
@@ -379,20 +380,20 @@ private fun EditRecordScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(168.dp),
-                label = { Text("发生了什么") },
+                label = { Text(stringResource(R.string.field_content)) },
                 keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
             )
         }
         item {
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.fillMaxWidth()) {
                 MediaAddButton(
-                    text = "添加图片",
+                    text = stringResource(R.string.action_add_image),
                     icon = { Icon(Icons.Filled.Image, contentDescription = null) },
                     modifier = Modifier.weight(1f),
                     onClick = { imageLauncher.launch(arrayOf("image/*")) },
                 )
                 MediaAddButton(
-                    text = "添加视频",
+                    text = stringResource(R.string.action_add_video),
                     icon = { Icon(Icons.Filled.Videocam, contentDescription = null) },
                     modifier = Modifier.weight(1f),
                     onClick = { videoLauncher.launch(arrayOf("video/*")) },
@@ -401,7 +402,7 @@ private fun EditRecordScreen(
         }
         if (media.isNotEmpty()) {
             item {
-                SectionTitle("已添加媒体")
+                SectionTitle(stringResource(R.string.section_added_media))
             }
             items(media, key = { it.id }) { attachment ->
                 MediaDraftRow(attachment = attachment, onRemove = { media.remove(attachment) })
@@ -413,14 +414,14 @@ private fun EditRecordScreen(
                     value = mood,
                     onValueChange = { mood = it },
                     modifier = Modifier.weight(1f),
-                    label = { Text("心情") },
+                    label = { Text(stringResource(R.string.field_mood)) },
                     singleLine = true,
                 )
                 OutlinedTextField(
                     value = location,
                     onValueChange = { location = it },
                     modifier = Modifier.weight(1f),
-                    label = { Text("地点") },
+                    label = { Text(stringResource(R.string.field_location)) },
                     singleLine = true,
                 )
             }
@@ -430,14 +431,14 @@ private fun EditRecordScreen(
                 value = tags,
                 onValueChange = { tags = it },
                 modifier = Modifier.fillMaxWidth(),
-                label = { Text("标签") },
+                label = { Text(stringResource(R.string.field_tags)) },
                 singleLine = true,
             )
         }
         item {
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.fillMaxWidth()) {
                 OutlinedButton(onClick = onCancel, modifier = Modifier.weight(1f), enabled = !saving) {
-                    Text("取消")
+                    Text(stringResource(R.string.action_cancel))
                 }
                 Button(
                     onClick = {
@@ -462,7 +463,7 @@ private fun EditRecordScreen(
                 ) {
                     Icon(Icons.Filled.Save, contentDescription = null, modifier = Modifier.size(18.dp))
                     Spacer(Modifier.width(8.dp))
-                    Text(if (saving) "保存中" else "保存")
+                    Text(stringResource(if (saving) R.string.action_saving else R.string.action_save))
                 }
             }
         }
@@ -490,14 +491,14 @@ private fun HistoryScreen(
                 .padding(horizontal = 16.dp, vertical = 10.dp),
             horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            ModeChip("日期列表", Icons.AutoMirrored.Filled.FormatListBulleted, mode == HistoryMode.List) { mode = HistoryMode.List }
-            ModeChip("缩略图", Icons.Filled.GridView, mode == HistoryMode.Grid) { mode = HistoryMode.Grid }
-            ModeChip("走马灯", Icons.Filled.ViewCarousel, mode == HistoryMode.Carousel) { mode = HistoryMode.Carousel }
+            ModeChip(stringResource(R.string.history_mode_list), Icons.AutoMirrored.Filled.FormatListBulleted, mode == HistoryMode.List) { mode = HistoryMode.List }
+            ModeChip(stringResource(R.string.history_mode_grid), Icons.Filled.GridView, mode == HistoryMode.Grid) { mode = HistoryMode.Grid }
+            ModeChip(stringResource(R.string.history_mode_carousel), Icons.Filled.ViewCarousel, mode == HistoryMode.Carousel) { mode = HistoryMode.Carousel }
         }
         if (records.isEmpty()) {
             EmptyState(
-                title = "还没有记录",
-                body = "完成今日推荐后，这里会按日期倒序展示打卡日记。",
+                title = stringResource(R.string.empty_records_title),
+                body = stringResource(R.string.empty_records_body),
                 modifier = Modifier.fillMaxSize().padding(24.dp),
             )
         } else {
@@ -552,7 +553,11 @@ private fun RecordDetailScreen(
     }.collectAsState(initial = emptyList())
 
     if (detail == null) {
-        EmptyState(title = "记录不存在", body = "这条记录可能已经被移除。", modifier = Modifier.fillMaxSize().padding(padding))
+        EmptyState(
+            title = stringResource(R.string.record_not_found_title),
+            body = stringResource(R.string.record_not_found_body),
+            modifier = Modifier.fillMaxSize().padding(padding),
+        )
         return
     }
 
@@ -574,14 +579,24 @@ private fun RecordDetailScreen(
         item {
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
                 AssistChip(onClick = {}, label = { Text(detail!!.category) })
-                AssistChip(onClick = {}, label = { Text("第 ${detail!!.versionNumber} 版") })
+                AssistChip(
+                    onClick = {},
+                    label = { Text(stringResource(R.string.version_number, detail!!.versionNumber)) },
+                )
             }
         }
         item {
             Text(detail!!.title, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
             Spacer(Modifier.height(6.dp))
             Text(
-                "${detail!!.dateKey} · 更新于 ${formatTimestamp(detail!!.updatedAt)}",
+                stringResource(
+                    R.string.record_updated,
+                    detail!!.dateKey,
+                    formatTimestamp(
+                        timestamp = detail!!.updatedAt,
+                        pattern = stringResource(R.string.date_format_timestamp),
+                    ),
+                ),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -595,7 +610,7 @@ private fun RecordDetailScreen(
             }
         }
         if (media.isNotEmpty()) {
-            item { SectionTitle("媒体") }
+            item { SectionTitle(stringResource(R.string.section_media)) }
             items(media, key = { it.id }) { attachment ->
                 MediaAttachmentCard(attachment)
             }
@@ -605,12 +620,12 @@ private fun RecordDetailScreen(
                 OutlinedButton(onClick = onVersions, modifier = Modifier.weight(1f)) {
                     Icon(Icons.Filled.History, contentDescription = null, modifier = Modifier.size(18.dp))
                     Spacer(Modifier.width(8.dp))
-                    Text("版本历史")
+                    Text(stringResource(R.string.screen_version_history))
                 }
                 Button(onClick = { onEdit(detail!!) }, modifier = Modifier.weight(1f)) {
                     Icon(Icons.Filled.Edit, contentDescription = null, modifier = Modifier.size(18.dp))
                     Spacer(Modifier.width(8.dp))
-                    Text("编辑")
+                    Text(stringResource(R.string.action_edit))
                 }
             }
         }
@@ -625,7 +640,11 @@ private fun VersionHistoryScreen(
 ) {
     val versions by remember(recordId) { repository.observeVersions(recordId) }.collectAsState(initial = emptyList())
     if (versions.isEmpty()) {
-        EmptyState(title = "暂无版本", body = "保存记录后会生成版本快照。", modifier = Modifier.fillMaxSize().padding(padding))
+        EmptyState(
+            title = stringResource(R.string.empty_versions_title),
+            body = stringResource(R.string.empty_versions_body),
+            modifier = Modifier.fillMaxSize().padding(padding),
+        )
         return
     }
     LazyColumn(
@@ -658,12 +677,12 @@ private fun ProfileScreen(padding: PaddingValues, repository: ClickClackReposito
             ProfileHeader()
         }
         item {
-            PreferenceSection("推荐与提醒")
+            PreferenceSection(stringResource(R.string.preference_section_recommendations))
         }
         item {
             PreferenceSwitchRow(
                 icon = { Icon(Icons.Filled.Notifications, contentDescription = null) },
-                title = "每日提醒",
+                title = stringResource(R.string.preference_daily_reminder),
                 description = preferenceValue(preferences, "reminder_time"),
                 checked = preferenceValue(preferences, "show_daily_reminder") == "true",
                 onCheckedChange = { checked ->
@@ -674,32 +693,32 @@ private fun ProfileScreen(padding: PaddingValues, repository: ClickClackReposito
         item {
             PreferenceStaticRow(
                 icon = { Icon(Icons.Filled.Settings, contentDescription = null) },
-                title = "推荐分类偏好",
-                description = preferenceValue(preferences, "preferred_categories"),
+                title = stringResource(R.string.preference_categories),
+                description = localizedPreferenceValue(preferences, "preferred_categories"),
             )
         }
         item {
-            PreferenceSection("外观与数据")
+            PreferenceSection(stringResource(R.string.preference_section_appearance))
         }
         item {
             PreferenceStaticRow(
                 icon = { Icon(Icons.Filled.Palette, contentDescription = null) },
-                title = "主题模式",
-                description = preferenceValue(preferences, "theme_mode"),
+                title = stringResource(R.string.preference_theme),
+                description = localizedPreferenceValue(preferences, "theme_mode"),
             )
         }
         item {
             PreferenceStaticRow(
                 icon = { Icon(Icons.Filled.Storage, contentDescription = null) },
-                title = "默认媒体保存策略",
-                description = preferenceValue(preferences, "media_strategy"),
+                title = stringResource(R.string.preference_media_strategy),
+                description = localizedPreferenceValue(preferences, "media_strategy"),
             )
         }
         item {
             PreferenceSwitchRow(
                 icon = { Icon(Icons.Filled.GridView, contentDescription = null) },
-                title = "显示 UI 外边框",
-                description = "用于检查页面布局边界",
+                title = stringResource(R.string.preference_debug_outline),
+                description = stringResource(R.string.preference_debug_outline_description),
                 checked = preferenceValue(preferences, "debug_ui_outline") == "true",
                 onCheckedChange = { checked ->
                     scope.launch { repository.updatePreference("debug_ui_outline", checked.toString()) }
@@ -709,8 +728,8 @@ private fun ProfileScreen(padding: PaddingValues, repository: ClickClackReposito
         item {
             PreferenceStaticRow(
                 icon = { Icon(Icons.Filled.Info, contentDescription = null) },
-                title = "关于应用",
-                description = "哒咔 · 本地优先的每日打卡日记",
+                title = stringResource(R.string.preference_about),
+                description = stringResource(R.string.preference_about_description),
             )
         }
     }
@@ -770,11 +789,16 @@ private fun MediaDraftRow(attachment: MediaAttachmentDraft, onRemove: () -> Unit
                 modifier = Modifier.size(68.dp),
             )
             Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                Text(if (attachment.type == MediaType.Image) "图片" else "视频", fontWeight = FontWeight.Medium)
+                Text(
+                    stringResource(
+                        if (attachment.type == MediaType.Image) R.string.media_image else R.string.media_video,
+                    ),
+                    fontWeight = FontWeight.Medium,
+                )
                 Text(attachment.uri, maxLines = 1, overflow = TextOverflow.Ellipsis, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
             OutlinedButton(onClick = onRemove) {
-                Text("移除")
+                Text(stringResource(R.string.action_remove))
             }
         }
     }
@@ -782,6 +806,8 @@ private fun MediaDraftRow(attachment: MediaAttachmentDraft, onRemove: () -> Unit
 
 @Composable
 private fun RecordListCard(record: RecordSummary, onClick: () -> Unit) {
+    val mediaOnlyText = stringResource(R.string.record_media_only)
+
     Card(
         modifier = Modifier.fillMaxWidth().clickable(onClick = onClick).debugOutline(RoundedCornerShape(24.dp)),
         shape = RoundedCornerShape(24.dp),
@@ -795,7 +821,7 @@ private fun RecordListCard(record: RecordSummary, onClick: () -> Unit) {
                 }
                 Text(record.title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
                 Text(
-                    record.content.ifBlank { "包含媒体记录" },
+                    record.content.ifBlank { mediaOnlyText },
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -845,7 +871,13 @@ private fun MediaAttachmentCard(attachment: MediaAttachment) {
                 modifier = Modifier.fillMaxWidth().height(220.dp),
             )
             Text(
-                text = if (attachment.type == MediaType.Image) "图片附件" else "视频附件",
+                text = stringResource(
+                    if (attachment.type == MediaType.Image) {
+                        R.string.media_image_attachment
+                    } else {
+                        R.string.media_video_attachment
+                    },
+                ),
                 modifier = Modifier.padding(12.dp),
                 fontWeight = FontWeight.Medium,
             )
@@ -858,12 +890,19 @@ private fun VersionCard(version: RecordVersion) {
     Card(modifier = Modifier.debugOutline(RoundedCornerShape(22.dp)), shape = RoundedCornerShape(22.dp)) {
         Column(modifier = Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
-                Text("第 ${version.versionNumber} 版", fontWeight = FontWeight.Bold)
+                Text(stringResource(R.string.version_number, version.versionNumber), fontWeight = FontWeight.Bold)
                 if (version.isCurrent) {
-                    AssistChip(onClick = {}, label = { Text("当前版本") })
+                    AssistChip(onClick = {}, label = { Text(stringResource(R.string.current_version)) })
                 }
             }
-            Text(formatTimestamp(version.editedAt), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(
+                formatTimestamp(
+                    timestamp = version.editedAt,
+                    pattern = stringResource(R.string.date_format_timestamp),
+                ),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
             Text(version.title, style = MaterialTheme.typography.titleMedium)
             Text(version.content, maxLines = 3, overflow = TextOverflow.Ellipsis, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
@@ -924,7 +963,7 @@ private fun CategoryVisual(
     if (!decorated) {
         Box(modifier = modifier, contentAlignment = Alignment.Center) {
             Image(
-                painter = painterResource(categoryImageRes(asset, category)),
+                painter = painterResource(categoryImageRes(asset)),
                 contentDescription = category,
                 contentScale = ContentScale.Fit,
                 modifier = Modifier
@@ -961,7 +1000,7 @@ private fun CategoryVisual(
             )
         }
         Image(
-            painter = painterResource(categoryImageRes(asset, category)),
+            painter = painterResource(categoryImageRes(asset)),
             contentDescription = category,
             contentScale = ContentScale.Fit,
             modifier = Modifier
@@ -972,7 +1011,7 @@ private fun CategoryVisual(
 }
 
 @DrawableRes
-private fun categoryImageRes(asset: String, category: String): Int = when (asset.lowercase(Locale.getDefault())) {
+private fun categoryImageRes(asset: String): Int = when (asset.lowercase(Locale.getDefault())) {
     "food" -> R.drawable.illustration_food
     "sport" -> R.drawable.illustration_sport
     "commute" -> R.drawable.illustration_commute
@@ -981,36 +1020,34 @@ private fun categoryImageRes(asset: String, category: String): Int = when (asset
     "work", "study" -> R.drawable.illustration_explore
     "fun", "relax" -> R.drawable.illustration_social
     "home" -> R.drawable.illustration_food
-    else -> when (category) {
-        "美食" -> R.drawable.illustration_food
-        "运动" -> R.drawable.illustration_sport
-        "通勤" -> R.drawable.illustration_commute
-        "社交" -> R.drawable.illustration_social
-        "探索", "工作", "学习" -> R.drawable.illustration_explore
-        "娱乐", "放松" -> R.drawable.illustration_social
-        else -> R.drawable.illustration_food
-    }
+    else -> R.drawable.illustration_food
 }
 
 private fun categoryColors(asset: String): List<Color> = when (asset.lowercase(Locale.getDefault())) {
-    "food", "美食" -> listOf(Color(0xFFB54626), Color(0xFFE8A54E))
-    "sport", "运动" -> listOf(Color(0xFF1B7A5A), Color(0xFF7BC6A4))
-    "commute", "通勤" -> listOf(Color(0xFF2E5C83), Color(0xFFA7C7E7))
-    "work", "工作" -> listOf(Color(0xFF48515E), Color(0xFF98A2B3))
-    "fun", "娱乐" -> listOf(Color(0xFF8A3FFC), Color(0xFFFF7AA2))
-    "social", "社交" -> listOf(Color(0xFFB83280), Color(0xFFF2A0C8))
-    "relax", "放松" -> listOf(Color(0xFF2F6F73), Color(0xFFB5D8CC))
-    "home", "家务" -> listOf(Color(0xFF7A5B37), Color(0xFFD9BF8F))
-    "study", "学习" -> listOf(Color(0xFF334E8A), Color(0xFF9DB7F5))
+    "food" -> listOf(Color(0xFFB54626), Color(0xFFE8A54E))
+    "sport" -> listOf(Color(0xFF1B7A5A), Color(0xFF7BC6A4))
+    "commute" -> listOf(Color(0xFF2E5C83), Color(0xFFA7C7E7))
+    "work" -> listOf(Color(0xFF48515E), Color(0xFF98A2B3))
+    "fun" -> listOf(Color(0xFF8A3FFC), Color(0xFFFF7AA2))
+    "social" -> listOf(Color(0xFFB83280), Color(0xFFF2A0C8))
+    "relax" -> listOf(Color(0xFF2F6F73), Color(0xFFB5D8CC))
+    "home" -> listOf(Color(0xFF7A5B37), Color(0xFFD9BF8F))
+    "study" -> listOf(Color(0xFF334E8A), Color(0xFF9DB7F5))
     else -> listOf(Color(0xFF4B5563), Color(0xFF94A3B8))
 }
 
 @Composable
 private fun MetadataRow(detail: RecordDetail) {
     Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.horizontalScroll(rememberScrollState())) {
-        if (detail.mood.isNotBlank()) AssistChip(onClick = {}, label = { Text("心情 ${detail.mood}") })
-        if (detail.location.isNotBlank()) AssistChip(onClick = {}, label = { Text("地点 ${detail.location}") })
-        if (detail.tags.isNotBlank()) AssistChip(onClick = {}, label = { Text("标签 ${detail.tags}") })
+        if (detail.mood.isNotBlank()) {
+            AssistChip(onClick = {}, label = { Text(stringResource(R.string.metadata_mood, detail.mood)) })
+        }
+        if (detail.location.isNotBlank()) {
+            AssistChip(onClick = {}, label = { Text(stringResource(R.string.metadata_location, detail.location)) })
+        }
+        if (detail.tags.isNotBlank()) {
+            AssistChip(onClick = {}, label = { Text(stringResource(R.string.metadata_tags, detail.tags)) })
+        }
     }
 }
 
@@ -1051,9 +1088,13 @@ private fun ProfileHeader() {
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
     ) {
         Column(modifier = Modifier.fillMaxWidth().padding(18.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            Text("本地优先", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onPrimaryContainer)
-            Text("哒咔", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
-            Text("记录保存在本机 Room 数据库中，后续可映射账号、云同步和远程推荐。")
+            Text(
+                stringResource(R.string.profile_local_first),
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.onPrimaryContainer,
+            )
+            Text(stringResource(R.string.app_name), style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
+            Text(stringResource(R.string.profile_description))
         }
     }
 }
@@ -1102,8 +1143,14 @@ private fun PreferenceStaticRow(
 private fun preferenceValue(preferences: List<PreferenceItem>, key: String): String =
     preferences.firstOrNull { it.key == key }?.value.orEmpty()
 
-private fun formatDate(date: Date): String =
-    SimpleDateFormat("yyyy年MM月dd日", Locale.getDefault()).format(date)
+@Composable
+private fun localizedPreferenceValue(preferences: List<PreferenceItem>, key: String): String =
+    when (val value = preferenceValue(preferences, key)) {
+        "all_categories" -> stringResource(R.string.preference_all_categories)
+        "system" -> stringResource(R.string.preference_follow_system)
+        "local_uri" -> stringResource(R.string.preference_local_uri)
+        else -> value
+    }
 
-private fun formatTimestamp(timestamp: Long): String =
-    SimpleDateFormat("MM-dd HH:mm", Locale.getDefault()).format(Date(timestamp))
+private fun formatTimestamp(timestamp: Long, pattern: String): String =
+    SimpleDateFormat(pattern, Locale.getDefault()).format(Date(timestamp))

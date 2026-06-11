@@ -6,11 +6,11 @@ plugins {
 }
 
 android {
-    namespace = "com.luzalid.clickclack"
+    namespace = "com.luzalid.daka"
     compileSdk = 36
 
     defaultConfig {
-        applicationId = "com.luzalid.clickclack"
+        applicationId = "com.luzalid.daka"
         minSdk = 24
         targetSdk = 36
         versionCode = 1

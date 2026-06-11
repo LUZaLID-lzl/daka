@@ -1,4 +1,4 @@
-package com.luzalid.clickclack.ui.screens
+package com.luzalid.daka.ui.screens
 
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
@@ -28,7 +28,16 @@ import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.SelfImprovement
+import androidx.compose.material.icons.filled.DirectionsBus
+import androidx.compose.material.icons.filled.DirectionsRun
+import androidx.compose.material.icons.filled.Explore
+import androidx.compose.material.icons.filled.Groups
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.LocalDining
+import androidx.compose.material.icons.filled.MenuBook
+import androidx.compose.material.icons.filled.Movie
+import androidx.compose.material.icons.filled.Spa
+import androidx.compose.material.icons.filled.Work
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -48,13 +57,15 @@ import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
-import com.luzalid.clickclack.model.Recommendation
+import com.luzalid.daka.model.Recommendation
+import com.luzalid.daka.R
 import kotlin.math.absoluteValue
 import kotlinx.coroutines.launch
 
@@ -124,11 +135,14 @@ internal fun HomeRecommendationStage(
             val offset = ((pagerState.currentPage - page) + pagerState.currentPageOffsetFraction)
                 .coerceIn(-1f, 1f)
             val distance = offset.absoluteValue
-            val scale = 0.84f + (1f - distance) * 0.16f
-            val alpha = 0.50f + (1f - distance) * 0.50f
-            val rotation = offset * -10f
-            val yShift = (-54).dp * distance
-            val blurRadius = 1.4.dp * distance
+            val focus = 1f - distance
+            val scale = 0.78f + focus * 0.22f
+            val alpha = 0.34f + focus * 0.66f
+            val rotation = offset * -14f
+            val rotationY = offset * 20f
+            val xShift = 26.dp * offset
+            val yShift = (-68).dp * distance
+            val blurRadius = 2.4.dp * distance
             val transformOrigin = when {
                 offset > 0f -> TransformOrigin(1f, 1f)
                 offset < 0f -> TransformOrigin(0f, 1f)
@@ -160,7 +174,10 @@ internal fun HomeRecommendationStage(
                             scaleY = scale
                             this.alpha = alpha
                             rotationZ = rotation
+                            this.rotationY = rotationY
+                            translationX = xShift.toPx()
                             translationY = yShift.toPx()
+                            cameraDistance = 14f * density
                         },
                 )
             }
@@ -224,9 +241,9 @@ private fun DailyWalkCard(
             recommendation = recommendation,
             modifier = Modifier
                 .fillMaxWidth()
-                .height(184.dp)
+                .height(218.dp)
                 .align(Alignment.TopCenter)
-                .padding(top = 20.dp),
+                .padding(top = 4.dp),
         )
         Box(
             modifier = Modifier
@@ -249,7 +266,10 @@ private fun DailyWalkCard(
             horizontalArrangement = Arrangement.End,
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            SuggestionPill(text = recommendation.category)
+            SuggestionPill(
+                text = recommendation.category,
+                imageAsset = recommendation.imageAsset,
+            )
         }
         Column(
             modifier = Modifier
@@ -258,25 +278,27 @@ private fun DailyWalkCard(
         ) {
             Text(
                 text = recommendation.title,
-                color = Color.White,
+                color = Color(0xFFFFFCF3),
                 style = MaterialTheme.typography.headlineMedium.copy(
-                    fontSize = 22.sp,
-                    lineHeight = 28.sp,
-                    fontWeight = FontWeight.Black,
+                    fontSize = 23.sp,
+                    lineHeight = 29.sp,
+                    fontWeight = FontWeight.Bold,
+                    letterSpacing = 0.2.sp,
                 ),
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis,
             )
-            Spacer(Modifier.height(12.dp))
+            Spacer(Modifier.height(10.dp))
             Text(
                 text = recommendation.description,
-                color = Color.White,
+                color = Color.White.copy(alpha = 0.82f),
                 style = MaterialTheme.typography.titleMedium.copy(
-                    fontSize = 14.sp,
-                    lineHeight = 22.sp,
-                    fontWeight = FontWeight.Medium,
+                    fontSize = 13.sp,
+                    lineHeight = 20.sp,
+                    fontWeight = FontWeight.Normal,
+                    letterSpacing = 0.15.sp,
                 ),
-                maxLines = 3,
+                maxLines = 2,
                 overflow = TextOverflow.Ellipsis,
             )
         }
@@ -284,29 +306,51 @@ private fun DailyWalkCard(
 }
 
 @Composable
-private fun SuggestionPill(text: String) {
+private fun SuggestionPill(
+    text: String,
+    imageAsset: String,
+) {
+    val icon = when (imageAsset) {
+        "food" -> Icons.Filled.LocalDining
+        "commute" -> Icons.Filled.DirectionsBus
+        "sport" -> Icons.Filled.DirectionsRun
+        "work" -> Icons.Filled.Work
+        "fun" -> Icons.Filled.Movie
+        "social" -> Icons.Filled.Groups
+        "relax" -> Icons.Filled.Spa
+        "home" -> Icons.Filled.Home
+        "study" -> Icons.Filled.MenuBook
+        else -> Icons.Filled.Explore
+    }
+
     Row(
         modifier = Modifier
             .clip(RoundedCornerShape(999.dp))
-            .background(Color(0xFFFFFAF3).copy(alpha = 0.95f))
-            .padding(horizontal = 12.dp, vertical = 7.dp)
+            .background(Color(0xFFFFFCF5).copy(alpha = 0.92f))
+            .border(
+                width = 1.dp,
+                color = Color.White.copy(alpha = 0.58f),
+                shape = RoundedCornerShape(999.dp),
+            )
+            .padding(horizontal = 11.dp, vertical = 7.dp)
             .debugOutline(RoundedCornerShape(999.dp)),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(7.dp),
+        horizontalArrangement = Arrangement.spacedBy(6.dp),
     ) {
         Icon(
-            Icons.Filled.SelfImprovement,
+            icon,
             contentDescription = null,
-            tint = Color(0xFF8A5B00),
-            modifier = Modifier.size(16.dp),
+            tint = Color(0xFF725018),
+            modifier = Modifier.size(15.dp),
         )
         Text(
             text = text,
-            color = Color(0xFF8A5B00),
+            color = Color(0xFF604315),
             style = MaterialTheme.typography.titleMedium.copy(
-                fontSize = 14.sp,
-                lineHeight = 17.sp,
-                fontWeight = FontWeight.Bold,
+                fontSize = 12.sp,
+                lineHeight = 15.sp,
+                fontWeight = FontWeight.SemiBold,
+                letterSpacing = 0.35.sp,
             ),
         )
     }
@@ -359,18 +403,18 @@ private fun ThemeMotionVisual(
             }
         }
         Image(
-            painter = painterResource(categoryMotionImageRes(recommendation.imageAsset, recommendation.category)),
+            painter = painterResource(categoryMotionImageRes(recommendation.imageAsset)),
             contentDescription = recommendation.category,
             contentScale = ContentScale.Fit,
             modifier = Modifier
                 .fillMaxSize()
-                .padding(horizontal = 30.dp)
+                .padding(horizontal = 8.dp)
                 .graphicsLayer {
                     alpha = iconAlpha * 0.95f
-                    scaleX = iconScale
-                    scaleY = iconScale
-                    rotationZ = -8f * (1f - enterProgress)
-                    translationY = (-14f + 14f * enterProgress).dp.toPx()
+                    scaleX = iconScale * 1.12f
+                    scaleY = iconScale * 1.12f
+                    rotationZ = -10f * (1f - enterProgress)
+                    translationY = (-22f + 22f * enterProgress).dp.toPx()
                 },
         )
     }
@@ -419,7 +463,7 @@ internal fun HomeQuoteCard() {
         contentAlignment = Alignment.Center,
     ) {
         Text(
-            text = "\"The best time to plant a tree was\n20 years ago. The second best\ntime is now.\"",
+            text = stringResource(R.string.home_quote),
             color = Color(0xFF3A3026),
             textAlign = TextAlign.Center,
             style = MaterialTheme.typography.titleMedium.copy(

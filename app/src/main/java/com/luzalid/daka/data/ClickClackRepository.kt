@@ -1,15 +1,16 @@
-package com.luzalid.clickclack.data
+package com.luzalid.daka.data
 
 import android.content.Context
-import com.luzalid.clickclack.model.MediaAttachment
-import com.luzalid.clickclack.model.MediaAttachmentDraft
-import com.luzalid.clickclack.model.MediaType
-import com.luzalid.clickclack.model.PreferenceItem
-import com.luzalid.clickclack.model.Recommendation
-import com.luzalid.clickclack.model.RecordDetail
-import com.luzalid.clickclack.model.RecordSummary
-import com.luzalid.clickclack.model.RecordVersion
-import com.luzalid.clickclack.recommendation.RecommendationCatalog
+import com.luzalid.daka.R
+import com.luzalid.daka.model.MediaAttachment
+import com.luzalid.daka.model.MediaAttachmentDraft
+import com.luzalid.daka.model.MediaType
+import com.luzalid.daka.model.PreferenceItem
+import com.luzalid.daka.model.Recommendation
+import com.luzalid.daka.model.RecordDetail
+import com.luzalid.daka.model.RecordSummary
+import com.luzalid.daka.model.RecordVersion
+import com.luzalid.daka.recommendation.RecommendationCatalog
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -18,21 +19,22 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
 class ClickClackRepository(context: Context) {
-    private val dao = ClickClackDatabase.get(context).dao()
+    private val appContext = context.applicationContext
+    private val dao = ClickClackDatabase.get(appContext).dao()
 
     suspend fun initialize() {
-        dao.insertRecommendations(RecommendationCatalog.builtIns())
+        dao.insertRecommendations(RecommendationCatalog.builtIns(appContext.resources))
         seedPreference("show_daily_reminder", "false")
-        seedPreference("reminder_time", "21:30")
-        seedPreference("preferred_categories", "全部分类")
-        seedPreference("theme_mode", "跟随系统")
-        seedPreference("media_strategy", "保存本地 URI")
+        seedPreference("reminder_time", appContext.getString(R.string.preference_default_reminder_time))
+        updatePreference("preferred_categories", "all_categories")
+        updatePreference("theme_mode", "system")
+        updatePreference("media_strategy", "local_uri")
         seedPreference("debug_ui_outline", "false")
     }
 
     suspend fun todayRecommendation(): Recommendation {
         val recommendations = dao.getEnabledRecommendations().ifEmpty {
-            RecommendationCatalog.builtIns().also { dao.insertRecommendations(it) }
+            RecommendationCatalog.builtIns(appContext.resources).also { dao.insertRecommendations(it) }
         }
         val index = stableTodayIndex(recommendations.size)
         return recommendations[index].toDomain()
@@ -40,7 +42,7 @@ class ClickClackRepository(context: Context) {
 
     suspend fun homeRecommendations(): List<Recommendation> {
         val recommendations = dao.getEnabledRecommendations().ifEmpty {
-            RecommendationCatalog.builtIns().also { dao.insertRecommendations(it) }
+            RecommendationCatalog.builtIns(appContext.resources).also { dao.insertRecommendations(it) }
         }
         val index = stableTodayIndex(recommendations.size)
         return (recommendations.drop(index) + recommendations.take(index)).map { it.toDomain() }

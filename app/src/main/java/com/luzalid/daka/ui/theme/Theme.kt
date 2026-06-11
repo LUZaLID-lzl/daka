@@ -1,4 +1,4 @@
-package com.luzalid.clickclack.ui.theme
+package com.luzalid.daka.ui.theme
 
 import android.app.Activity
 import android.os.Build
