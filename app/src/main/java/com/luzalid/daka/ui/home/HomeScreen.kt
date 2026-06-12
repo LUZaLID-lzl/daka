@@ -35,7 +35,6 @@ internal fun HomeScreen(
     repository: ClickClackRepository,
     recommendations: List<Recommendation>,
     onHistory: () -> Unit,
-    onProfile: () -> Unit,
     onRecord: (String?, Recommendation, Boolean) -> Unit,
 ) {
     val todayRecord by repository.observeTodayRecord().collectAsState(initial = null)
@@ -66,7 +65,7 @@ internal fun HomeScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .padding(padding)
+            .padding(top = padding.calculateTopPadding())
             .background(appearance.backgroundBrush)
             .then(
                 if (selectedContent == HomeContentDestination.Home) {
@@ -107,7 +106,13 @@ internal fun HomeScreen(
             activeRecommendationIndex = currentCardIndex,
             dragDistance = dragDistance,
             records = records,
-            onProfile = onProfile,
+            repository = repository,
+            onProfile = {
+                selectedContent = when (selectedContent) {
+                    HomeContentDestination.Profile -> HomeContentDestination.Home
+                    else -> HomeContentDestination.Profile
+                }
+            },
             onDragDistanceChange = { dragDistance = it },
             onSwipeRecommendation = moveCard,
             onActiveRecommendationChange = { currentCardIndex = it },
@@ -119,10 +124,16 @@ internal fun HomeScreen(
             selectedDestination = when (selectedContent) {
                 HomeContentDestination.Home -> HomeBottomDestination.Home
                 HomeContentDestination.Records -> HomeBottomDestination.Records
+                HomeContentDestination.Profile -> HomeBottomDestination.Profile
             },
             onHome = { selectedContent = HomeContentDestination.Home },
             onHistory = { selectedContent = HomeContentDestination.Records },
-            onProfile = onProfile,
+            onProfile = {
+                selectedContent = when (selectedContent) {
+                    HomeContentDestination.Profile -> HomeContentDestination.Home
+                    else -> HomeContentDestination.Profile
+                }
+            },
             onCreate = { recommendation?.let { onRecord(null, it, false) } },
         )
     }
@@ -176,6 +187,7 @@ private fun HomeScreenPreview() {
                     activeRecommendationIndex = activeIndex,
                     dragDistance = dragDistance,
                     records = emptyList(),
+                    repository = null,
                     onProfile = {},
                     onDragDistanceChange = { dragDistance = it },
                     onSwipeRecommendation = { direction ->

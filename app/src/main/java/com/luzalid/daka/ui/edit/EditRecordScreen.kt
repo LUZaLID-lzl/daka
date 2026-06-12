@@ -309,7 +309,7 @@ private fun JournalEditContent(
             .padding(horizontal = 20.dp)
             .statusBarsPadding()
             .padding(top = 8.dp, bottom = 176.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
+        horizontalAlignment = Alignment.Start,
     ) {
         JournalEditTopBar(
             recommendation = recommendation,
@@ -322,7 +322,7 @@ private fun JournalEditContent(
             onSave = onSave,
             saving = saving,
         )
-        Spacer(Modifier.height(if (showTitleField) 42.dp else 28.dp))
+        Spacer(Modifier.height(if (showTitleField) 24.dp else 16.dp))
         if (showTitleField) {
             JournalTitleField(title = title, onTitleChange = onTitleChange)
             Spacer(Modifier.height(22.dp))
@@ -331,6 +331,7 @@ private fun JournalEditContent(
             content = content,
             placeholder = if (showRecommendationIcon) recommendation.description else stringResource(R.string.field_content),
             onContentChange = onContentChange,
+            modifier = Modifier.weight(1f),
         )
         if (tags.isNotBlank()) {
             Spacer(Modifier.height(18.dp))
@@ -1004,7 +1005,7 @@ private fun JournalEditTopBar(
             horizontalArrangement = Arrangement.spacedBy(10.dp, Alignment.CenterHorizontally),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            if (showRecommendationIcon) {
+            if (showRecommendationIcon || mood.isNotBlank() || moodStrokes.isNotEmpty()) {
                 JournalRecommendationCardTransition(
                     recommendation = recommendation,
                     moodText = mood,
@@ -1196,51 +1197,57 @@ private fun JournalTitleField(
     title: String,
     onTitleChange: (String) -> Unit,
 ) {
-    BasicTextField(
-        value = title,
-        onValueChange = onTitleChange,
-        singleLine = true,
-        textStyle = TextStyle(
-            color = Color(0xFF0B1C30),
-            fontFamily = FontFamily.SansSerif,
-            fontSize = 28.sp,
-            lineHeight = 36.sp,
-            fontWeight = FontWeight.SemiBold,
-            textAlign = TextAlign.Center,
-        ),
-        keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
+    Column(
         modifier = Modifier
             .fillMaxWidth()
-            .widthIn(max = 330.dp)
-            .height(58.dp)
-            .clip(RoundedCornerShape(22.dp))
-            .background(Color.White.copy(alpha = 0.34f))
-            .border(1.dp, Color.White.copy(alpha = 0.42f), RoundedCornerShape(22.dp))
-            .debugOutline(RoundedCornerShape(22.dp)),
-        decorationBox = { inner ->
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(horizontal = 8.dp),
-                contentAlignment = Alignment.Center,
-            ) {
-                if (title.isBlank()) {
-                    Text(
-                        text = stringResource(R.string.field_title),
-                        color = Color(0xFF464555).copy(alpha = 0.60f),
-                        style = MaterialTheme.typography.headlineMedium.copy(
-                            fontFamily = FontFamily.SansSerif,
-                            fontSize = 28.sp,
-                            lineHeight = 36.sp,
-                            fontWeight = FontWeight.SemiBold,
-                            textAlign = TextAlign.Center,
-                        ),
-                    )
+            .widthIn(max = 340.dp),
+    ) {
+        BasicTextField(
+            value = title,
+            onValueChange = onTitleChange,
+            singleLine = true,
+            textStyle = TextStyle(
+                color = Color(0xFF0B1C30),
+                fontFamily = FontFamily.SansSerif,
+                fontSize = 28.sp,
+                lineHeight = 36.sp,
+                fontWeight = FontWeight.SemiBold,
+                textAlign = TextAlign.Start,
+            ),
+            keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 4.dp),
+            decorationBox = { inner ->
+                Box(
+                    modifier = Modifier.fillMaxWidth(),
+                    contentAlignment = Alignment.CenterStart,
+                ) {
+                    if (title.isBlank()) {
+                        Text(
+                            text = stringResource(R.string.field_title),
+                            color = Color(0xFF464555).copy(alpha = 0.40f),
+                            style = MaterialTheme.typography.headlineMedium.copy(
+                                fontFamily = FontFamily.SansSerif,
+                                fontSize = 28.sp,
+                                lineHeight = 36.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                textAlign = TextAlign.Start,
+                            ),
+                        )
+                    }
+                    inner()
                 }
-                inner()
-            }
-        },
-    )
+            },
+        )
+        Spacer(Modifier.height(12.dp))
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(1.dp)
+                .background(Color(0xFF0B1C30).copy(alpha = 0.08f)),
+        )
+    }
 }
 
 @Composable
@@ -1248,6 +1255,7 @@ private fun JournalContentField(
     content: String,
     placeholder: String,
     onContentChange: (String) -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     BasicTextField(
         value = content,
@@ -1261,47 +1269,19 @@ private fun JournalContentField(
             textAlign = TextAlign.Start,
         ),
         keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .widthIn(max = 340.dp)
-            .height(318.dp)
-            .shadow(
-                elevation = 16.dp,
-                shape = RoundedCornerShape(30.dp),
-                clip = false,
-                ambientColor = Color(0x123B342A),
-                spotColor = Color(0x0C3B342A),
-            )
-            .clip(RoundedCornerShape(30.dp))
-            .background(
-                Brush.verticalGradient(
-                    listOf(
-                        Color.White.copy(alpha = 0.78f),
-                        Color.White.copy(alpha = 0.58f),
-                        Color(0xFFF8FAFD).copy(alpha = 0.66f),
-                    ),
-                ),
-            )
-            .border(1.dp, Color.White.copy(alpha = 0.78f), RoundedCornerShape(30.dp))
-            .debugOutline(RoundedCornerShape(30.dp)),
+            .padding(horizontal = 4.dp),
         decorationBox = { inner ->
             Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(horizontal = 22.dp, vertical = 20.dp),
+                modifier = Modifier.fillMaxSize(),
                 contentAlignment = Alignment.TopStart,
             ) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(1.dp)
-                        .align(Alignment.TopCenter)
-                        .background(Color.White.copy(alpha = 0.72f)),
-                )
                 if (content.isBlank()) {
                     Text(
                         text = placeholder,
-                        color = Color(0xFF58677A).copy(alpha = 0.58f),
+                        color = Color(0xFF58677A).copy(alpha = 0.40f),
                         textAlign = TextAlign.Start,
                         style = MaterialTheme.typography.titleLarge.copy(
                             fontFamily = FontFamily.SansSerif,

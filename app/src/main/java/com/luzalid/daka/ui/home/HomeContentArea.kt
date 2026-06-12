@@ -2,6 +2,7 @@ package com.luzalid.daka.ui.home
 
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
@@ -10,13 +11,16 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.luzalid.daka.data.ClickClackRepository
 import com.luzalid.daka.model.Recommendation
 import com.luzalid.daka.model.RecordSummary
+import com.luzalid.daka.ui.profile.ProfileScreen
 import com.luzalid.daka.ui.records.RecordContent
 
 internal enum class HomeContentDestination {
     Home,
     Records,
+    Profile,
 }
 
 @Composable
@@ -27,6 +31,7 @@ internal fun HomeContentArea(
     activeRecommendationIndex: Int,
     dragDistance: Float,
     records: List<RecordSummary>,
+    repository: ClickClackRepository?,
     onProfile: () -> Unit,
     onDragDistanceChange: (Float) -> Unit,
     onSwipeRecommendation: (Int) -> Unit,
@@ -38,7 +43,10 @@ internal fun HomeContentArea(
     BoxWithConstraints(
         modifier = modifier
             .fillMaxSize()
-            .padding(bottom = 104.dp),
+            .then(
+                if (selectedContent == HomeContentDestination.Profile) Modifier
+                else Modifier.padding(bottom = 104.dp),
+            ),
     ) {
         val contentTopSpacing = maxHeight * 0.1f
         val recordContentTopSpacing = maxHeight * 0.04f
@@ -46,7 +54,9 @@ internal fun HomeContentArea(
             modifier = Modifier.fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            HomeHeroHeader(onProfile = onProfile)
+            if (selectedContent != HomeContentDestination.Profile) {
+                HomeHeroHeader(onProfile = onProfile)
+            }
             when (selectedContent) {
                 HomeContentDestination.Home -> {
                     Spacer(Modifier.height(contentTopSpacing))
@@ -71,6 +81,15 @@ internal fun HomeContentArea(
                             .fillMaxSize()
                             .padding(horizontal = 24.dp),
                     )
+                }
+
+                HomeContentDestination.Profile -> {
+                    if (repository != null) {
+                        ProfileScreen(
+                            padding = PaddingValues(),
+                            repository = repository,
+                        )
+                    }
                 }
             }
         }

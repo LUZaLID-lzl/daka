@@ -1,12 +1,10 @@
 package com.luzalid.daka.ui.app
 
+import androidx.activity.compose.LocalActivityResultRegistryOwner
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.collectAsState
@@ -15,18 +13,15 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import com.luzalid.daka.R
 import com.luzalid.daka.data.ClickClackRepository
 import com.luzalid.daka.model.Recommendation
 import com.luzalid.daka.ui.edit.EditRecordScreen
 import com.luzalid.daka.ui.home.HomeScreen
-import com.luzalid.daka.ui.profile.ProfileScreen
 
 private sealed interface AppRoute {
     data object Home : AppRoute
-    data object Profile : AppRoute
     data class Edit(
         val recordId: String?,
         val recommendation: Recommendation,
@@ -34,7 +29,6 @@ private sealed interface AppRoute {
     ) : AppRoute
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ClickClackApp(repository: ClickClackRepository) {
     var route by remember { mutableStateOf<AppRoute>(AppRoute.Home) }
@@ -43,6 +37,7 @@ fun ClickClackApp(repository: ClickClackRepository) {
         value = repository.homeRecommendations()
     }
     val preferences by repository.observePreferences().collectAsState(initial = emptyList())
+    val activityRegistryOwner = LocalContext.current as androidx.activity.result.ActivityResultRegistryOwner
     ProvideAppLanguage(preferences = preferences) {
         val appearance = rememberAppAppearance(preferences)
         val debugUiOutlineEnabled = preferenceValue(preferences, "debug_ui_outline") == "true"
@@ -51,17 +46,11 @@ fun ClickClackApp(repository: ClickClackRepository) {
             CompositionLocalProvider(
                 LocalDebugUiOutline provides debugUiOutlineEnabled,
                 LocalAppAppearance provides appearance,
+                LocalActivityResultRegistryOwner provides activityRegistryOwner,
             ) {
                 Scaffold(
                     contentWindowInsets = WindowInsets(0.dp),
                     containerColor = appearance.surfaceTint,
-                    topBar = {
-                        when (val current = route) {
-                            AppRoute.Home -> Unit
-                            AppRoute.Profile -> TopAppBar(title = { Text(stringResource(R.string.screen_profile)) })
-                            is AppRoute.Edit -> Unit
-                        }
-                    },
                 ) { padding ->
                     AppRouteContent(
                         padding = padding,
@@ -90,13 +79,10 @@ private fun AppRouteContent(
             repository = repository,
             recommendations = homeRecommendations,
             onHistory = {},
-            onProfile = { onRouteChange(AppRoute.Profile) },
             onRecord = { recordId, recommendation, fromRecommendationCard ->
                 onRouteChange(AppRoute.Edit(recordId, recommendation, fromRecommendationCard))
             },
         )
-
-        AppRoute.Profile -> ProfileScreen(padding = padding, repository = repository)
 
         is AppRoute.Edit -> EditRecordScreen(
             padding = padding,

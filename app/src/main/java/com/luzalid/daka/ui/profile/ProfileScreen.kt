@@ -21,10 +21,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.GridView
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material.icons.filled.Translate
@@ -45,7 +45,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -58,13 +57,10 @@ import com.luzalid.daka.data.ClickClackRepository
 import com.luzalid.daka.model.PreferenceItem
 import kotlinx.coroutines.launch
 
-private val ProfileHeroShape = RoundedCornerShape(30.dp)
-private val ProfileCardShape = RoundedCornerShape(24.dp)
+private val ProfileCardShape = RoundedCornerShape(20.dp)
 private val ProfileChipShape = RoundedCornerShape(999.dp)
+private val ProfileIconShape = RoundedCornerShape(16.dp)
 
-/**
- * Profile and preference page backed by persisted user preferences.
- */
 @Composable
 internal fun ProfileScreen(padding: PaddingValues, repository: ClickClackRepository) {
     val preferences by repository.observePreferences().collectAsState(initial = emptyList())
@@ -79,38 +75,30 @@ internal fun ProfileScreen(padding: PaddingValues, repository: ClickClackReposit
     )
 }
 
-/**
- * Stateless profile surface used by the runtime screen and previews.
- */
 @Composable
 private fun ProfileContent(
     padding: PaddingValues,
     preferences: List<PreferenceItem>,
     onPreferenceChange: (String, String) -> Unit,
 ) {
-    val appearance = LocalAppAppearance.current
-
     Box(
         modifier = Modifier
             .fillMaxSize()
             .padding(padding)
-            .background(appearance.backgroundBrush)
             .debugOutline(),
     ) {
         BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
             val horizontalPadding = maxWidth * 0.06f
-            val topSpacing = maxHeight * 0.025f
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
                 contentPadding = PaddingValues(
                     start = horizontalPadding,
-                    top = topSpacing,
+                    top = maxHeight * 0.025f,
                     end = horizontalPadding,
-                    bottom = maxHeight * 0.055f,
+                    bottom = maxHeight * 0.14f,
                 ),
                 verticalArrangement = Arrangement.spacedBy(maxHeight * 0.018f),
             ) {
-                item { ProfileHeader() }
                 item { PreferenceSection(text = stringResource(R.string.preference_section_recommendations)) }
                 item {
                     PreferenceSwitchRow(
@@ -165,6 +153,14 @@ private fun ProfileContent(
                         onSelected = { value -> onPreferenceChange("background_style", value) },
                     )
                 }
+                item { PreferenceSection(text = stringResource(R.string.preference_about)) }
+                item {
+                    PreferenceInfoRow(
+                        icon = { tint -> Icon(Icons.Filled.Info, contentDescription = null, tint = tint) },
+                        title = stringResource(R.string.preference_about),
+                        description = stringResource(R.string.preference_about_description),
+                    )
+                }
                 item {
                     PreferenceSwitchRow(
                         icon = { tint -> Icon(Icons.Filled.GridView, contentDescription = null, tint = tint) },
@@ -181,119 +177,17 @@ private fun ProfileContent(
     }
 }
 
-/**
- * Top profile summary card with local-first status and current appearance state.
- */
-@Composable
-private fun ProfileHeader() {
-    val appearance = LocalAppAppearance.current
-    val isNight = appearance.isDark
-    val heroColors = if (isNight) {
-        listOf(Color(0xFF252B38), Color(0xFF171B24))
-    } else {
-        listOf(Color(0xFFFFFFFF), appearance.surfaceTint, Color(0xFFEAF1FF))
-    }
-    val titleColor = if (isNight) Color(0xFFF7F8FA) else Color(0xFF171717)
-    val bodyColor = if (isNight) Color(0xFFC7CED8) else Color(0xFF626974)
-
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .shadow(
-                elevation = 24.dp,
-                shape = ProfileHeroShape,
-                clip = false,
-                ambientColor = Color(0x173B342A),
-                spotColor = Color(0x123B342A),
-            )
-            .clip(ProfileHeroShape)
-            .background(Brush.linearGradient(heroColors))
-            .debugOutline(ProfileHeroShape),
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 20.dp, vertical = 22.dp),
-            horizontalArrangement = Arrangement.spacedBy(16.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            ProfileAvatar()
-            Column(
-                modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(9.dp),
-            ) {
-                Text(
-                    text = stringResource(R.string.profile_local_first),
-                    color = bodyColor,
-                    fontSize = 13.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
-                Text(
-                    text = stringResource(R.string.app_name),
-                    color = titleColor,
-                    style = MaterialTheme.typography.headlineMedium,
-                    fontWeight = FontWeight.Bold,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
-                Text(
-                    text = stringResource(R.string.profile_description),
-                    color = bodyColor,
-                    style = MaterialTheme.typography.bodyMedium,
-                    lineHeight = 20.sp,
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun ProfileAvatar() {
-    Box(
-        modifier = Modifier
-            .size(58.dp)
-            .shadow(
-                elevation = 12.dp,
-                shape = CircleShape,
-                clip = false,
-                ambientColor = Color(0x183B342A),
-                spotColor = Color(0x123B342A),
-            )
-            .clip(CircleShape)
-            .background(Color.White)
-            .padding(4.dp)
-            .debugOutline(CircleShape),
-        contentAlignment = Alignment.Center,
-    ) {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .clip(CircleShape)
-                .background(Brush.verticalGradient(listOf(Color(0xFFFFE1D0), Color(0xFFDCE7FF)))),
-            contentAlignment = Alignment.Center,
-        ) {
-            Text(
-                text = stringResource(R.string.app_name).take(1),
-                color = Color(0xFF171717),
-                fontSize = 24.sp,
-                fontWeight = FontWeight.Bold,
-            )
-        }
-    }
-}
-
 @Composable
 private fun PreferenceSection(text: String) {
     Text(
         modifier = Modifier
-            .padding(start = 4.dp, top = 4.dp)
+            .padding(start = 6.dp, top = 10.dp, bottom = 2.dp)
             .debugOutline(),
         text = text,
         color = if (LocalAppAppearance.current.isDark) Color(0xFFE6EAF0) else Color(0xFF20242A),
-        style = MaterialTheme.typography.titleMedium,
+        style = MaterialTheme.typography.titleSmall,
         fontWeight = FontWeight.Bold,
+        letterSpacing = 0.2.sp,
     )
 }
 
@@ -309,8 +203,8 @@ private fun PreferenceSwitchRow(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 15.dp),
-            horizontalArrangement = Arrangement.spacedBy(13.dp),
+                .padding(horizontal = 18.dp, vertical = 18.dp),
+            horizontalArrangement = Arrangement.spacedBy(14.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             PreferenceIcon(icon = icon)
@@ -343,18 +237,18 @@ private fun PreferenceChoiceRow(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(13.dp),
+                .padding(horizontal = 18.dp, vertical = 18.dp),
+            verticalArrangement = Arrangement.spacedBy(14.dp),
         ) {
             Row(
-                horizontalArrangement = Arrangement.spacedBy(13.dp),
+                horizontalArrangement = Arrangement.spacedBy(14.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 PreferenceIcon(icon = icon)
                 Text(
                     text = title,
                     color = preferenceTitleColor(),
-                    style = MaterialTheme.typography.titleMedium,
+                    style = MaterialTheme.typography.titleSmall,
                     fontWeight = FontWeight.SemiBold,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
@@ -362,7 +256,7 @@ private fun PreferenceChoiceRow(
             }
             Row(
                 modifier = Modifier.horizontalScroll(rememberScrollState()),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
             ) {
                 options.forEach { (value, label) ->
                     FilterChip(
@@ -372,6 +266,7 @@ private fun PreferenceChoiceRow(
                         label = {
                             Text(
                                 text = label,
+                                style = MaterialTheme.typography.bodySmall,
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis,
                             )
@@ -390,19 +285,43 @@ private fun PreferenceChoiceRow(
 }
 
 @Composable
+private fun PreferenceInfoRow(
+    icon: @Composable (Color) -> Unit,
+    title: String,
+    description: String,
+) {
+    PreferenceCard {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 18.dp, vertical = 18.dp),
+            horizontalArrangement = Arrangement.spacedBy(14.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            PreferenceIcon(icon = icon)
+            PreferenceText(
+                modifier = Modifier.weight(1f),
+                title = title,
+                description = description,
+            )
+        }
+    }
+}
+
+@Composable
 private fun PreferenceCard(content: @Composable () -> Unit) {
     val appearance = LocalAppAppearance.current
-    val container = if (appearance.isDark) Color(0xE6222630) else Color.White.copy(alpha = 0.86f)
+    val container = if (appearance.isDark) Color(0xE6222630) else Color.White.copy(alpha = 0.90f)
 
     Box(
         modifier = Modifier
             .fillMaxWidth()
             .shadow(
-                elevation = 10.dp,
+                elevation = 8.dp,
                 shape = ProfileCardShape,
                 clip = false,
-                ambientColor = Color(0x123B342A),
-                spotColor = Color(0x0D3B342A),
+                ambientColor = Color(0x103B342A),
+                spotColor = Color(0x0A3B342A),
             )
             .clip(ProfileCardShape)
             .background(container)
@@ -415,18 +334,18 @@ private fun PreferenceCard(content: @Composable () -> Unit) {
 @Composable
 private fun PreferenceIcon(icon: @Composable (Color) -> Unit) {
     val appearance = LocalAppAppearance.current
-    val container = if (appearance.isDark) Color(0xFF343B48) else Color(0xFFF1F5FA)
-    val tint = if (appearance.isDark) Color(0xFFE8EDF4) else Color(0xFF151515)
+    val container = if (appearance.isDark) Color(0xFF343B48) else Color(0xFFF2F5FA)
+    val tint = if (appearance.isDark) Color(0xFFE8EDF4) else Color(0xFF1A1A1A)
 
     Box(
         modifier = Modifier
-            .size(42.dp)
-            .clip(RoundedCornerShape(14.dp))
+            .size(44.dp)
+            .clip(ProfileIconShape)
             .background(container)
-            .debugOutline(RoundedCornerShape(14.dp)),
+            .debugOutline(ProfileIconShape),
         contentAlignment = Alignment.Center,
     ) {
-        Box(modifier = Modifier.size(23.dp), contentAlignment = Alignment.Center) {
+        Box(modifier = Modifier.size(24.dp), contentAlignment = Alignment.Center) {
             icon(tint)
         }
     }
@@ -440,12 +359,12 @@ private fun PreferenceText(
 ) {
     Column(
         modifier = modifier,
-        verticalArrangement = Arrangement.spacedBy(4.dp),
+        verticalArrangement = Arrangement.spacedBy(5.dp),
     ) {
         Text(
             text = title,
             color = preferenceTitleColor(),
-            style = MaterialTheme.typography.titleMedium,
+            style = MaterialTheme.typography.titleSmall,
             fontWeight = FontWeight.SemiBold,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
@@ -453,9 +372,10 @@ private fun PreferenceText(
         Text(
             text = description,
             color = preferenceDescriptionColor(),
-            style = MaterialTheme.typography.bodyMedium,
+            style = MaterialTheme.typography.bodySmall,
             maxLines = 2,
             overflow = TextOverflow.Ellipsis,
+            lineHeight = 18.sp,
         )
     }
 }
@@ -471,23 +391,6 @@ private fun preferenceDescriptionColor(): Color =
 @Composable
 private fun preferenceChipContainerColor(): Color =
     if (LocalAppAppearance.current.isDark) Color(0xFF303744) else Color(0xFFF4F6F9)
-
-@Composable
-private fun localizedPreferenceValue(preferences: List<PreferenceItem>, key: String): String =
-    when (val value = preferenceValue(preferences, key)) {
-        "all_categories" -> stringResource(R.string.preference_all_categories)
-        "system" -> stringResource(R.string.preference_follow_system)
-        "light" -> stringResource(R.string.preference_light)
-        "dark" -> stringResource(R.string.preference_dark)
-        "mist" -> stringResource(R.string.preference_background_mist)
-        "sunrise" -> stringResource(R.string.preference_background_sunrise)
-        "forest" -> stringResource(R.string.preference_background_forest)
-        "night" -> stringResource(R.string.preference_background_night)
-        "local_uri" -> stringResource(R.string.preference_local_uri)
-        "zh" -> stringResource(R.string.preference_language_chinese)
-        "en" -> stringResource(R.string.preference_language_english)
-        else -> value
-    }
 
 private fun previewProfilePreferences() = listOf(
     PreferenceItem("reminder_time", "21:30"),

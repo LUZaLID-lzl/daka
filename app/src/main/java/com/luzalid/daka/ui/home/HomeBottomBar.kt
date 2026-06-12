@@ -131,7 +131,7 @@ private fun BottomDock(
             HomeNavItem(selected = selectedDestination == HomeBottomDestination.Records, hasBadge = false, appearance = appearance, icon = { tint ->
                 Icon(Icons.Filled.Groups, contentDescription = null, tint = tint, modifier = Modifier.size(26.dp))
             }, onClick = onHistory)
-            HomeNavItem(selected = selectedDestination == HomeBottomDestination.Profile, hasBadge = true, appearance = appearance, icon = { tint ->
+            HomeNavItem(selected = selectedDestination == HomeBottomDestination.Profile, hasBadge = false, appearance = appearance, icon = { tint ->
                 Icon(Icons.Filled.Person, contentDescription = null, tint = tint, modifier = Modifier.size(26.dp))
             }, onClick = onProfile)
         }
