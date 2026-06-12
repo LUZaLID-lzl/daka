@@ -28,6 +28,7 @@ class ClickClackRepository(context: Context) {
         seedPreference("reminder_time", appContext.getString(R.string.preference_default_reminder_time))
         seedPreference("preferred_categories", "all_categories")
         seedPreference("theme_mode", "system")
+        seedPreference("app_language", "system")
         seedPreference("background_style", "mist")
         seedPreference("media_strategy", "local_uri")
         seedPreference("debug_ui_outline", "false")

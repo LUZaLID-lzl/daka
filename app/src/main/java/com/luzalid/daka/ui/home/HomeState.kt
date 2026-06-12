@@ -1,13 +1,15 @@
-package com.luzalid.daka.ui.screens
+package com.luzalid.daka.ui.home
+
+import com.luzalid.daka.ui.app.LocalAppAppearance
+import com.luzalid.daka.ui.app.LocalDebugUiOutline
+import com.luzalid.daka.ui.app.AppAppearance
+import com.luzalid.daka.ui.app.appAppearance
+import com.luzalid.daka.ui.app.appColorScheme
+import com.luzalid.daka.ui.app.debugOutline
 
 import androidx.annotation.DrawableRes
 import com.luzalid.daka.R
-import java.text.DateFormat
-import java.util.Date
 import java.util.Locale
-
-internal fun todayDateLabel(): String =
-    DateFormat.getDateInstance(DateFormat.MEDIUM, Locale.getDefault()).format(Date())
 
 @DrawableRes
 internal fun categoryMotionImageRes(asset: String): Int = when (asset.lowercase(Locale.getDefault())) {

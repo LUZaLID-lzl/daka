@@ -1,4 +1,11 @@
-package com.luzalid.daka.ui.screens
+package com.luzalid.daka.ui.home
+
+import com.luzalid.daka.ui.app.LocalAppAppearance
+import com.luzalid.daka.ui.app.LocalDebugUiOutline
+import com.luzalid.daka.ui.app.AppAppearance
+import com.luzalid.daka.ui.app.appAppearance
+import com.luzalid.daka.ui.app.appColorScheme
+import com.luzalid.daka.ui.app.debugOutline
 
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
@@ -26,7 +33,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DirectionsBus
@@ -513,63 +519,8 @@ private fun ThemeMotionVisual(
                     scaleX = iconScale * 1.12f
                     scaleY = iconScale * 1.12f
                     rotationZ = -10f * (1f - enterProgress)
-                    translationY = (-22f + 22f * enterProgress).dp.toPx()
+                    translationY = (-14f + 22f * enterProgress).dp.toPx()
                 },
-        )
-    }
-}
-
-@Composable
-internal fun HomePagerDots(
-    count: Int,
-    activeIndex: Int,
-) {
-    if (count <= 1) return
-    Row(
-        modifier = Modifier.height(16.dp),
-        horizontalArrangement = Arrangement.spacedBy(10.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        repeat(count.coerceAtMost(5)) { index ->
-            Box(
-                modifier = Modifier
-                    .size(if (index == activeIndex) 10.dp else 8.dp)
-                    .clip(CircleShape)
-                    .background(if (index == activeIndex) Color(0xFF563600) else Color(0xFFEDE7DD)),
-            )
-        }
-    }
-}
-
-@Composable
-internal fun HomeQuoteCard() {
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 42.dp)
-            .shadow(
-                elevation = 8.dp,
-                shape = RoundedCornerShape(16.dp),
-                clip = false,
-                ambientColor = Color(0x0D4A3520),
-                spotColor = Color(0x084A3520),
-            )
-            .clip(RoundedCornerShape(16.dp))
-            .background(Color(0xFFFEFAF4))
-            .border(1.dp, Color(0xFFF0E6D8), RoundedCornerShape(16.dp))
-            .padding(horizontal = 20.dp, vertical = 14.dp)
-            .debugOutline(RoundedCornerShape(16.dp)),
-        contentAlignment = Alignment.Center,
-    ) {
-        Text(
-            text = stringResource(R.string.home_quote),
-            color = Color(0xFF3A3026),
-            textAlign = TextAlign.Center,
-            style = MaterialTheme.typography.titleMedium.copy(
-                fontSize = 15.sp,
-                lineHeight = 24.sp,
-                fontWeight = FontWeight.Medium,
-            ),
         )
     }
 }
@@ -699,22 +650,6 @@ private fun HomeRecommendationDetailPreview() {
                 recommendation = previewRecommendations().first(),
                 onShuffle = {},
             )
-        }
-    }
-}
-
-@Preview(name = "Home Quote", showBackground = true, widthDp = 360, heightDp = 120)
-@Composable
-private fun HomeQuoteCardPreview() {
-    MaterialTheme {
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(Color(0xFFF7F8FA))
-                .padding(vertical = 24.dp),
-            contentAlignment = Alignment.Center,
-        ) {
-            HomeQuoteCard()
         }
     }
 }

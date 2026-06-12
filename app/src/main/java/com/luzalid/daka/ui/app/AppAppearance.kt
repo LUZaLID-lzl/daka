@@ -1,4 +1,4 @@
-package com.luzalid.daka.ui.screens
+package com.luzalid.daka.ui.app
 
 import androidx.compose.foundation.border
 import androidx.compose.foundation.isSystemInDarkTheme

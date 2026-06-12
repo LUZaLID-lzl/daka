@@ -1,4 +1,11 @@
-package com.luzalid.daka.ui.screens
+package com.luzalid.daka.ui.home
+
+import com.luzalid.daka.ui.app.LocalAppAppearance
+import com.luzalid.daka.ui.app.LocalDebugUiOutline
+import com.luzalid.daka.ui.app.AppAppearance
+import com.luzalid.daka.ui.app.appAppearance
+import com.luzalid.daka.ui.app.appColorScheme
+import com.luzalid.daka.ui.app.debugOutline
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -30,9 +37,17 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 
+internal enum class HomeBottomDestination {
+    Home,
+    Records,
+    Profile,
+}
+
 @Composable
 internal fun HomeBottomNavigation(
     modifier: Modifier = Modifier,
+    selectedDestination: HomeBottomDestination = HomeBottomDestination.Home,
+    onHome: () -> Unit = {},
     onHistory: () -> Unit,
     onProfile: () -> Unit,
     onCreate: () -> Unit,
@@ -49,7 +64,13 @@ internal fun HomeBottomNavigation(
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        BottomDock(onHistory = onHistory, onProfile = onProfile, appearance = appearance)
+        BottomDock(
+            selectedDestination = selectedDestination,
+            onHome = onHome,
+            onHistory = onHistory,
+            onProfile = onProfile,
+            appearance = appearance,
+        )
         Box(
             modifier = Modifier
                 .size(56.dp)
@@ -75,6 +96,8 @@ private val navigationShape = RoundedCornerShape(999.dp)
 
 @Composable
 private fun BottomDock(
+    selectedDestination: HomeBottomDestination,
+    onHome: () -> Unit,
     onHistory: () -> Unit,
     onProfile: () -> Unit,
     appearance: AppAppearance,
@@ -102,13 +125,13 @@ private fun BottomDock(
             horizontalArrangement = Arrangement.SpaceEvenly,
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            HomeNavItem(selected = true, hasBadge = false, appearance = appearance, icon = { tint ->
+            HomeNavItem(selected = selectedDestination == HomeBottomDestination.Home, hasBadge = false, appearance = appearance, icon = { tint ->
                 Icon(Icons.Filled.CalendarViewDay, contentDescription = null, tint = tint, modifier = Modifier.size(27.dp))
-            }, onClick = {})
-            HomeNavItem(selected = false, hasBadge = false, appearance = appearance, icon = { tint ->
+            }, onClick = onHome)
+            HomeNavItem(selected = selectedDestination == HomeBottomDestination.Records, hasBadge = false, appearance = appearance, icon = { tint ->
                 Icon(Icons.Filled.Groups, contentDescription = null, tint = tint, modifier = Modifier.size(26.dp))
             }, onClick = onHistory)
-            HomeNavItem(selected = false, hasBadge = true, appearance = appearance, icon = { tint ->
+            HomeNavItem(selected = selectedDestination == HomeBottomDestination.Profile, hasBadge = true, appearance = appearance, icon = { tint ->
                 Icon(Icons.Filled.Person, contentDescription = null, tint = tint, modifier = Modifier.size(26.dp))
             }, onClick = onProfile)
         }

@@ -1,14 +1,16 @@
-package com.luzalid.daka.ui.screens
+package com.luzalid.daka.ui.home
+
+import com.luzalid.daka.ui.app.LocalAppAppearance
+import com.luzalid.daka.ui.app.LocalDebugUiOutline
+import com.luzalid.daka.ui.app.appAppearance
+import com.luzalid.daka.ui.app.appColorScheme
+import com.luzalid.daka.ui.app.debugOutline
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxWithConstraints
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -37,7 +39,9 @@ internal fun HomeScreen(
     onRecord: (String?, Recommendation, Boolean) -> Unit,
 ) {
     val todayRecord by repository.observeTodayRecord().collectAsState(initial = null)
+    val records by repository.observeRecordSummaries().collectAsState(initial = emptyList())
     val appearance = LocalAppAppearance.current
+    var selectedContent by remember { mutableStateOf(HomeContentDestination.Home) }
     var groupSeed by remember(recommendations) { mutableStateOf(0) }
     val homeCards = remember(recommendations, groupSeed) {
         if (recommendations.size <= 3) {
@@ -64,65 +68,60 @@ internal fun HomeScreen(
             .fillMaxSize()
             .padding(padding)
             .background(appearance.backgroundBrush)
-            .pointerInput(homeCards) {
-                var totalDrag = 0f
-                detectHorizontalDragGestures(
-                    onDragStart = {
-                        totalDrag = 0f
-                        dragDistance = 0f
-                    },
-                    onHorizontalDrag = { _, dragAmount ->
-                        totalDrag = (totalDrag + dragAmount).coerceIn(-140f, 140f)
-                        dragDistance = totalDrag
-                    },
-                    onDragEnd = {
-                        if (abs(totalDrag) > 42f) {
-                            moveCard(if (totalDrag < 0f) -1 else 1)
-                        }
-                        totalDrag = 0f
-                        dragDistance = 0f
-                    },
-                    onDragCancel = {
-                        totalDrag = 0f
-                        dragDistance = 0f
-                    },
-                )
-            }
+            .then(
+                if (selectedContent == HomeContentDestination.Home) {
+                    Modifier.pointerInput(homeCards) {
+                        var totalDrag = 0f
+                        detectHorizontalDragGestures(
+                            onDragStart = {
+                                totalDrag = 0f
+                                dragDistance = 0f
+                            },
+                            onHorizontalDrag = { _, dragAmount ->
+                                totalDrag = (totalDrag + dragAmount).coerceIn(-140f, 140f)
+                                dragDistance = totalDrag
+                            },
+                            onDragEnd = {
+                                if (abs(totalDrag) > 42f) {
+                                    moveCard(if (totalDrag < 0f) -1 else 1)
+                                }
+                                totalDrag = 0f
+                                dragDistance = 0f
+                            },
+                            onDragCancel = {
+                                totalDrag = 0f
+                                dragDistance = 0f
+                            },
+                        )
+                    }
+                } else {
+                    Modifier
+                },
+            )
             .debugOutline(),
     ) {
-        BoxWithConstraints(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(bottom = 104.dp),
-        ) {
-            val contentTopSpacing = maxHeight * 0.1f
-            Column(
-                modifier = Modifier.fillMaxSize(),
-                horizontalAlignment = Alignment.CenterHorizontally,
-            ) {
-                HomeHeroHeader(onProfile = onProfile)
-                Spacer(Modifier.height(contentTopSpacing))
-                if (recommendation != null) {
-                    HomeRecommendationStage(
-                        recommendations = homeCards,
-                        activeIndex = currentCardIndex,
-                        dragDistance = dragDistance,
-                        onDragDistanceChange = { dragDistance = it },
-                        onSwipe = moveCard,
-                        onActiveIndexChange = { currentCardIndex = it },
-                        onRecord = { selected -> onRecord(null, selected, true) },
-                    )
-                    Spacer(Modifier.height(34.dp))
-                    HomeRecommendationDetail(
-                        recommendation = recommendation,
-                        onShuffle = { groupSeed += 1 },
-                    )
-                }
-            }
-        }
+        HomeContentArea(
+            selectedContent = selectedContent,
+            recommendations = homeCards,
+            activeRecommendation = recommendation,
+            activeRecommendationIndex = currentCardIndex,
+            dragDistance = dragDistance,
+            records = records,
+            onProfile = onProfile,
+            onDragDistanceChange = { dragDistance = it },
+            onSwipeRecommendation = moveCard,
+            onActiveRecommendationChange = { currentCardIndex = it },
+            onRecommendationRecord = { selected -> onRecord(null, selected, true) },
+            onShuffleRecommendations = { groupSeed += 1 },
+        )
         HomeBottomNavigation(
             modifier = Modifier.align(Alignment.BottomCenter),
-            onHistory = onHistory,
+            selectedDestination = when (selectedContent) {
+                HomeContentDestination.Home -> HomeBottomDestination.Home
+                HomeContentDestination.Records -> HomeBottomDestination.Records
+            },
+            onHome = { selectedContent = HomeContentDestination.Home },
+            onHistory = { selectedContent = HomeContentDestination.Records },
             onProfile = onProfile,
             onCreate = { recommendation?.let { onRecord(null, it, false) } },
         )
@@ -170,40 +169,26 @@ private fun HomeScreenPreview() {
                     .fillMaxSize()
                     .background(appearance.backgroundBrush),
             ) {
-                BoxWithConstraints(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(bottom = 120.dp),
-                ) {
-                    val contentTopSpacing = maxHeight * 0.1f
-                    Column(
-                        modifier = Modifier.fillMaxSize(),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                    ) {
-                        HomeHeroHeader(onProfile = {})
-                        Spacer(Modifier.height(contentTopSpacing))
-                        HomeRecommendationStage(
-                            recommendations = cards,
-                            activeIndex = activeIndex,
-                            dragDistance = dragDistance,
-                            onDragDistanceChange = { dragDistance = it },
-                            onSwipe = { direction ->
-                                activeIndex = if (direction < 0) {
-                                    (activeIndex + 1) % cards.size
-                                } else {
-                                    (activeIndex - 1 + cards.size) % cards.size
-                                }
-                            },
-                            onActiveIndexChange = { activeIndex = it },
-                            onRecord = {},
-                        )
-                        Spacer(Modifier.height(34.dp))
-                        HomeRecommendationDetail(
-                            recommendation = cards[activeIndex],
-                            onShuffle = {},
-                        )
-                    }
-                }
+                HomeContentArea(
+                    selectedContent = HomeContentDestination.Home,
+                    recommendations = cards,
+                    activeRecommendation = cards[activeIndex],
+                    activeRecommendationIndex = activeIndex,
+                    dragDistance = dragDistance,
+                    records = emptyList(),
+                    onProfile = {},
+                    onDragDistanceChange = { dragDistance = it },
+                    onSwipeRecommendation = { direction ->
+                        activeIndex = if (direction < 0) {
+                            (activeIndex + 1) % cards.size
+                        } else {
+                            (activeIndex - 1 + cards.size) % cards.size
+                        }
+                    },
+                    onActiveRecommendationChange = { activeIndex = it },
+                    onRecommendationRecord = {},
+                    onShuffleRecommendations = {},
+                )
                 HomeBottomNavigation(
                     modifier = Modifier.align(Alignment.BottomCenter),
                     onHistory = {},

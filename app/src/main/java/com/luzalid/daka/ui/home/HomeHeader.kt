@@ -1,4 +1,11 @@
-package com.luzalid.daka.ui.screens
+package com.luzalid.daka.ui.home
+
+import com.luzalid.daka.ui.app.LocalAppAppearance
+import com.luzalid.daka.ui.app.LocalDebugUiOutline
+import com.luzalid.daka.ui.app.AppAppearance
+import com.luzalid.daka.ui.app.appAppearance
+import com.luzalid.daka.ui.app.appColorScheme
+import com.luzalid.daka.ui.app.debugOutline
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background

@@ -10,17 +10,15 @@
     <string name="home_quote">“The best time to plant a tree was 20 years ago. The second best time is now.”</string>
     <string name="home_shuffle_group">Shuffle set</string>
 
-    <string name="screen_records">Records</string>
     <string name="screen_profile">Profile</string>
     <string name="screen_check_in">Create Record</string>
-    <string name="screen_record_detail">Record Details</string>
-    <string name="screen_version_history">Version History</string>
     <string name="action_back">Back</string>
     <string name="action_cancel">Cancel</string>
     <string name="action_save">Save</string>
     <string name="action_saving">Saving</string>
     <string name="action_edit">Edit</string>
     <string name="action_remove">Remove</string>
+    <string name="action_show_all">Show all</string>
     <string name="action_add_image">Add Image</string>
     <string name="action_add_video">Add Video</string>
 
@@ -29,21 +27,25 @@
     <string name="field_mood">Mood</string>
     <string name="field_location">Location</string>
     <string name="field_tags">Tags</string>
+    <string name="edit_today">Today</string>
+    <string name="edit_toolbar_photo">Photo</string>
+    <string name="edit_toolbar_place">Place</string>
+    <string name="edit_toolbar_tag">Mood</string>
+    <string name="edit_tag_sheet_title">How are you feeling today?</string>
+    <string name="edit_tag_erase">Erase</string>
+    <string name="edit_tag_clear">Clear</string>
+    <string name="edit_tag_done">Done</string>
+    <string name="edit_tag_sketch">Sketched mood</string>
     <string name="section_added_media">Added Media</string>
     <string name="section_media">Media</string>
 
-    <string name="history_mode_list">By Date</string>
-    <string name="history_mode_grid">Thumbnails</string>
-    <string name="history_mode_carousel">Carousel</string>
+    <string name="records_search_hint">Discover a record</string>
+    <string name="records_popular_title">Popular</string>
+    <string name="records_recent_title">Recommended</string>
     <string name="empty_records_title">No records yet</string>
     <string name="empty_records_body">Complete today’s suggestion and your journal will appear here in reverse chronological order.</string>
-    <string name="record_not_found_title">Record not found</string>
-    <string name="record_not_found_body">This record may have been removed.</string>
-    <string name="empty_versions_title">No versions yet</string>
-    <string name="empty_versions_body">A version snapshot will be created after you save the record.</string>
-    <string name="version_number">Version %1$d</string>
-    <string name="current_version">Current</string>
     <string name="record_updated">%1$s · Updated %2$s</string>
+    <string name="record_card_meta">%1$s · %2$s</string>
     <string name="record_media_only">Media record</string>
 
     <string name="media_image">Image</string>
@@ -59,6 +61,9 @@
     <string name="preference_daily_reminder">Daily Reminder</string>
     <string name="preference_categories">Preferred Categories</string>
     <string name="preference_section_appearance">Appearance &amp; Data</string>
+    <string name="preference_language">Language</string>
+    <string name="preference_language_chinese">Chinese</string>
+    <string name="preference_language_english">English</string>
     <string name="preference_theme">Theme</string>
     <string name="preference_background">Background</string>
     <string name="preference_media_strategy">Default Media Storage</string>

@@ -8,7 +8,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import com.luzalid.daka.data.ClickClackRepository
-import com.luzalid.daka.ui.screens.ClickClackApp
+import com.luzalid.daka.ui.app.ClickClackApp
 import com.luzalid.daka.ui.theme.ClickclackTheme
 
 class MainActivity : ComponentActivity() {
