@@ -65,6 +65,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.TransformOrigin
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.input.pointer.pointerInput
@@ -144,7 +145,6 @@ private fun AnimatedStackedCard(
     onRecord: () -> Unit,
 ) {
     val isFront = spec.depth == 0
-    val shape = RoundedCornerShape(if (isFront) 28.dp else 30.dp)
     val baseHeight = 302.dp
     val widthScale = when (spec.depth) {
         1 -> 0.92f
@@ -271,6 +271,7 @@ private fun AnimatedStackedCard(
     ) {
         DailyWalkCard(
             recommendation = spec.recommendation,
+            depth = spec.depth,
             onRecord = {
                 if (isFront) {
                     onRecord()
@@ -279,8 +280,7 @@ private fun AnimatedStackedCard(
                 }
             },
             modifier = Modifier
-                .fillMaxSize()
-                .clip(shape),
+                .fillMaxSize(),
         )
     }
 }
@@ -305,6 +305,7 @@ private data class StackedCardSpec(
 @Composable
 private fun DailyWalkCard(
     recommendation: Recommendation,
+    depth: Int,
     onRecord: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -315,11 +316,15 @@ private fun DailyWalkCard(
     Box(
         modifier = modifier
             .shadow(
-                elevation = 36.dp,
+                elevation = when (depth) {
+                    0 -> 36.dp
+                    1 -> 22.dp
+                    else -> 16.dp
+                },
                 shape = shape,
                 clip = false,
-                ambientColor = palette.shadow,
-                spotColor = palette.shadow.copy(alpha = 0.14f),
+                ambientColor = palette.shadow.copy(alpha = if (depth == 0) 0.30f else 0.18f),
+                spotColor = palette.shadow.copy(alpha = if (depth == 0) 0.22f else 0.12f),
             )
             .clip(shape)
             .background(palette.gradient.last())
@@ -353,6 +358,10 @@ private fun DailyWalkCard(
                     ),
                 ),
         )
+        CardLightBloom(
+            palette = palette,
+            modifier = Modifier.fillMaxSize(),
+        )
         ThemeMotionVisual(
             recommendation = recommendation,
             modifier = Modifier
@@ -372,6 +381,24 @@ private fun DailyWalkCard(
                             palette.scrim.copy(alpha = 0.66f),
                         ),
                     ),
+                ),
+        )
+        CardTextureOverlay(
+            modifier = Modifier.fillMaxSize(),
+        )
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .border(
+                    width = 1.dp,
+                    brush = Brush.verticalGradient(
+                        listOf(
+                            Color.White.copy(alpha = 0.48f),
+                            Color.White.copy(alpha = 0.10f),
+                            palette.scrim.copy(alpha = 0.24f),
+                        ),
+                    ),
+                    shape = shape,
                 ),
         )
         Row(
@@ -404,6 +431,66 @@ private fun DailyWalkCard(
                 ),
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis,
+            )
+        }
+    }
+}
+
+@Composable
+private fun CardLightBloom(
+    palette: RecommendationPalette,
+    modifier: Modifier = Modifier,
+) {
+    Canvas(modifier = modifier) {
+        drawCircle(
+            brush = Brush.radialGradient(
+                colors = listOf(
+                    Color.White.copy(alpha = 0.22f),
+                    palette.glow.copy(alpha = 0.09f),
+                    Color.Transparent,
+                ),
+                center = Offset(size.width * 0.12f, size.height * 0.02f),
+                radius = size.minDimension * 0.92f,
+            ),
+            radius = size.minDimension * 0.92f,
+            center = Offset(size.width * 0.12f, size.height * 0.02f),
+        )
+        drawArc(
+            brush = Brush.sweepGradient(
+                colors = listOf(
+                    Color.White.copy(alpha = 0.42f),
+                    Color.White.copy(alpha = 0.02f),
+                    Color.Transparent,
+                ),
+                center = Offset(size.width * 0.5f, size.height * 0.5f),
+            ),
+            startAngle = 196f,
+            sweepAngle = 112f,
+            useCenter = false,
+            topLeft = Offset(1.5.dp.toPx(), 1.5.dp.toPx()),
+            size = androidx.compose.ui.geometry.Size(
+                width = size.width - 3.dp.toPx(),
+                height = size.height - 3.dp.toPx(),
+            ),
+            style = Stroke(width = 1.2.dp.toPx()),
+        )
+    }
+}
+
+@Composable
+private fun CardTextureOverlay(
+    modifier: Modifier = Modifier,
+) {
+    Canvas(modifier = modifier) {
+        val grainColor = Color.White.copy(alpha = 0.035f)
+        repeat(72) { index ->
+            val x = ((index * 47) % 101) / 100f * size.width
+            val y = ((index * 71 + 13) % 103) / 102f * size.height
+            val radius = if (index % 5 == 0) 0.8.dp.toPx() else 0.45.dp.toPx()
+            drawCircle(
+                color = grainColor,
+                radius = radius,
+                center = Offset(x, y),
             )
         }
     }
@@ -507,20 +594,21 @@ private fun ThemeMotionVisual(
                 )
             }
         }
+        val illustrationModifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = 8.dp)
+            .graphicsLayer {
+                alpha = iconAlpha * 0.95f
+                scaleX = iconScale * 0.94f
+                scaleY = iconScale * 0.94f
+                rotationZ = -10f * (1f - enterProgress)
+                translationY = (-4f + 22f * enterProgress).dp.toPx()
+            }
         Image(
             painter = painterResource(categoryMotionImageRes(recommendation.imageAsset)),
             contentDescription = recommendation.category,
             contentScale = ContentScale.Fit,
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(horizontal = 8.dp)
-                .graphicsLayer {
-                    alpha = iconAlpha * 0.95f
-                    scaleX = iconScale * 1.12f
-                    scaleY = iconScale * 1.12f
-                    rotationZ = -10f * (1f - enterProgress)
-                    translationY = (-14f + 22f * enterProgress).dp.toPx()
-                },
+            modifier = illustrationModifier,
         )
     }
 }

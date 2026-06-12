@@ -107,15 +107,19 @@ private fun BottomDock(
             .width(190.dp)
             .height(64.dp)
             .shadow(
-                elevation = 15.dp,
+                elevation = 20.dp,
                 shape = navigationShape,
                 clip = false,
-                ambientColor = Color(0x183B342A),
-                spotColor = Color(0x123B342A),
+                ambientColor = appearance.bottomDockContentColor.copy(alpha = 0.14f),
+                spotColor = appearance.bottomDockContentColor.copy(alpha = 0.10f),
             )
             .clip(navigationShape)
             .background(appearance.bottomDockColor)
-            .border(1.dp, appearance.bottomDockSelectedColor.copy(alpha = 0.78f), navigationShape)
+            .border(
+                width = 1.dp,
+                color = appearance.bottomDockContentColor.copy(alpha = if (appearance.isDark) 0.20f else 0.10f),
+                shape = navigationShape,
+            )
             .padding(horizontal = 12.dp)
             .debugOutline(navigationShape),
         contentAlignment = Alignment.Center,
@@ -146,6 +150,8 @@ private fun HomeNavItem(
     icon: @Composable (Color) -> Unit,
     onClick: () -> Unit,
 ) {
+    val selectedBackground = if (appearance.isDark) Color(0xFFF7F8FA) else Color(0xFF2F6CE5)
+    val selectedIconColor = if (appearance.isDark) Color(0xFF151922) else Color.White
     Box(
         modifier = Modifier
             .size(52.dp)
@@ -156,11 +162,18 @@ private fun HomeNavItem(
         Box(
             modifier = Modifier
                 .size(44.dp)
+                .shadow(
+                    elevation = if (selected) 8.dp else 0.dp,
+                    shape = RoundedCornerShape(13.dp),
+                    clip = false,
+                    ambientColor = selectedBackground.copy(alpha = 0.24f),
+                    spotColor = selectedBackground.copy(alpha = 0.18f),
+                )
                 .clip(RoundedCornerShape(13.dp))
-                .background(if (selected) appearance.bottomDockSelectedColor else Color.Transparent),
+                .background(if (selected) selectedBackground else Color.Transparent),
             contentAlignment = Alignment.Center,
         ) {
-            icon(if (selected) appearance.bottomDockContentColor else appearance.bottomDockMutedColor)
+            icon(if (selected) selectedIconColor else appearance.bottomDockMutedColor)
         }
         if (hasBadge) {
             Box(

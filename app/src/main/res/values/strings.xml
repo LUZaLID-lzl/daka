@@ -9,9 +9,27 @@
     <string name="home_subtitle">今天也记录一点生活吧</string>
     <string name="home_quote">“种一棵树最好的时间是二十年前，其次是现在。”</string>
     <string name="home_shuffle_group">随机换一组</string>
+    <string name="home_tab_active">推荐</string>
+    <string name="home_tab_past">全部</string>
 
     <string name="screen_profile">我的</string>
     <string name="screen_check_in">记录打卡</string>
+    <string name="screen_ui_lab">UI 动效实验室</string>
+    <string name="ui_lab_description">用于检查分层矢量图形、状态动画和不同尺寸下的显示效果。</string>
+    <string name="ui_lab_preview">实时预览</string>
+    <string name="ui_lab_background">预览背景</string>
+    <string name="ui_lab_background_light">浅色</string>
+    <string name="ui_lab_background_dark">深色</string>
+    <string name="ui_lab_size">组件尺寸</string>
+    <string name="ui_lab_size_small">小</string>
+    <string name="ui_lab_size_medium">中</string>
+    <string name="ui_lab_size_large">大</string>
+    <string name="ui_lab_replay">重新播放</string>
+    <string name="ui_lab_play">播放</string>
+    <string name="ui_lab_pause">暂停</string>
+    <string name="ui_lab_rive_note">当前使用 Rive Android 运行时。替换 raw/ui_lab_motion.riv 即可测试正式动画。</string>
+    <string name="ui_lab_layers">动画图层</string>
+    <string name="ui_lab_layers_body">几何装饰 · 角色主体 · 表情 · 碗与食物 · 蒸汽</string>
     <string name="action_back">返回</string>
     <string name="action_cancel">取消</string>
     <string name="action_save">保存</string>
@@ -36,6 +54,11 @@
     <string name="edit_tag_clear">清空</string>
     <string name="edit_tag_done">完成</string>
     <string name="edit_tag_sketch">手绘心情</string>
+    <string name="mood_love">喜爱</string>
+    <string name="mood_happy">开心</string>
+    <string name="mood_calm">平静</string>
+    <string name="mood_moved">感动</string>
+    <string name="mood_fresh">清新</string>
     <string name="section_added_media">已添加媒体</string>
     <string name="section_media">媒体</string>
 
@@ -46,6 +69,7 @@
     <string name="empty_records_body">完成今日推荐后，这里会按日期倒序展示打卡日记。</string>
     <string name="record_updated">%1$s · 更新于 %2$s</string>
     <string name="record_card_meta">%1$s · %2$s</string>
+    <string name="record_category_count">%1$s，共 %2$d 条记录</string>
     <string name="record_media_only">包含媒体记录</string>
 
     <string name="media_image">图片</string>

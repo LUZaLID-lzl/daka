@@ -100,4 +100,23 @@ object RecommendationCatalog {
             updatedAt = now,
         ),
     )
+
+    /**
+     * Resolves built-in recommendation copy with the currently selected app locale.
+     * Remote recommendations keep their server-provided content.
+     */
+    fun localized(
+        resources: Resources,
+        recommendation: RecommendationEntity,
+    ): RecommendationEntity {
+        if (recommendation.source != "local") return recommendation
+        val localized = builtIns(resources, now = recommendation.updatedAt)
+            .firstOrNull { it.id == recommendation.id }
+            ?: return recommendation
+        return recommendation.copy(
+            title = localized.title,
+            description = localized.description,
+            category = localized.category,
+        )
+    }
 }

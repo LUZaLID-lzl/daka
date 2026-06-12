@@ -20,8 +20,12 @@ android {
     }
 
     buildTypes {
+        debug {
+            buildConfigField("boolean", "OPEN_UI_LAB_ON_LAUNCH", "false")
+        }
         release {
             isMinifyEnabled = false
+            buildConfigField("boolean", "OPEN_UI_LAB_ON_LAUNCH", "false")
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
@@ -37,6 +41,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 }
 
@@ -53,6 +58,7 @@ dependencies {
     implementation(libs.androidx.material.icons.extended)
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.ktx)
+    implementation(libs.rive.android)
     kapt(libs.androidx.room.compiler)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

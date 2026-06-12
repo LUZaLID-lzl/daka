@@ -16,6 +16,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.CubicBezierEasing
+import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -84,6 +85,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -128,8 +130,11 @@ internal fun EditRecordScreen(
         initialValue = fallbackRecommendation,
         recordId,
         detail?.recommendationId,
+        context.resources.configuration,
     ) {
-        value = detail?.recommendationId?.let { repository.getRecommendation(it) } ?: fallbackRecommendation
+        value = detail?.recommendationId
+            ?.let { repository.getRecommendation(it, context.resources) }
+            ?: fallbackRecommendation
     }
 
     var loadedRecordId by remember(recordId) { mutableStateOf<String?>(null) }
@@ -238,6 +243,12 @@ internal fun EditRecordScreen(
             onSave = ::save,
             saving = saving,
         )
+        if (fromRecommendationCard) {
+            RecommendationArtworkFlight(
+                recommendation = activeRecommendation,
+                modifier = Modifier.fillMaxSize(),
+            )
+        }
         JournalBottomToolbar(
             modifier = Modifier.align(Alignment.BottomCenter),
             onPickMedia = {
@@ -344,6 +355,87 @@ private val CardEntryEase = CubicBezierEasing(0.215f, 0.61f, 0.355f, 1f)
 private val DrawerGsapEase = CubicBezierEasing(0.16f, 1f, 0.3f, 1f)
 
 @Composable
+private fun RecommendationArtworkFlight(
+    recommendation: Recommendation,
+    modifier: Modifier = Modifier,
+) {
+    val progress = remember(recommendation.id) { Animatable(0f) }
+    val containerSize = LocalWindowInfo.current.containerSize
+    val containerHeight = containerSize.height.toFloat()
+    val containerWidth = containerSize.width.toFloat()
+    val turnDirection = remember(recommendation.id) {
+        if (recommendation.id.hashCode() and 1 == 0) 1f else -1f
+    }
+    LaunchedEffect(recommendation.id) {
+        progress.snapTo(0f)
+        progress.animateTo(
+            targetValue = 1f,
+            animationSpec = tween(durationMillis = 640, easing = LinearEasing),
+        )
+    }
+
+    val value = progress.value
+    if (value < 1f) {
+        Box(modifier = modifier) {
+            listOf(0.09f to 0.13f, 0.045f to 0.25f, 0f to 1f).forEach { (delay, opacity) ->
+                val trailProgress = (value - delay).coerceAtLeast(0f)
+                Image(
+                    painter = painterResource(categoryMotionImageRes(recommendation.imageAsset)),
+                    contentDescription = null,
+                    contentScale = ContentScale.Fit,
+                    modifier = Modifier
+                        .align(Alignment.TopCenter)
+                        .statusBarsPadding()
+                        .padding(top = 18.dp)
+                        .size(38.dp)
+                        .graphicsLayer {
+                            val remaining = 1f - trailProgress
+                            val targetHandoff = (remaining / 0.14f).coerceIn(0f, 1f)
+                            translationX = artworkFlightX(
+                                progress = trailProgress,
+                                amplitude = containerWidth * 0.13f,
+                                direction = turnDirection,
+                            )
+                            translationY = containerHeight * 0.32f * remaining
+                            scaleX = 1f + 3.35f * remaining
+                            scaleY = 1f + 3.35f * remaining
+                            rotationZ = artworkFlightRotation(trailProgress, turnDirection)
+                            alpha = targetHandoff * opacity
+                        },
+                )
+            }
+        }
+    }
+}
+
+private fun artworkFlightX(
+    progress: Float,
+    amplitude: Float,
+    direction: Float,
+): Float = when {
+    progress < 0.34f -> {
+        val segment = progress / 0.34f
+        amplitude * direction * segment
+    }
+
+    progress < 0.68f -> {
+        val segment = (progress - 0.34f) / 0.34f
+        amplitude * direction * (1f - segment * 1.65f)
+    }
+
+    else -> {
+        val segment = (progress - 0.68f) / 0.32f
+        -amplitude * direction * 0.65f * (1f - segment)
+    }
+}
+
+private fun artworkFlightRotation(progress: Float, direction: Float): Float = when {
+    progress < 0.34f -> -8f * direction
+    progress < 0.68f -> 11f * direction
+    else -> -5f * direction * (1f - progress)
+}
+
+@Composable
 private fun JournalRecommendationCardTransition(
     recommendation: Recommendation,
     moodText: String,
@@ -365,7 +457,7 @@ private fun JournalRecommendationCardTransition(
         moodStrokes = moodStrokes,
         moodAnimationTrigger = moodAnimationTrigger,
         modifier = Modifier.graphicsLayer {
-            alpha = value
+            alpha = ((value - 0.72f) / 0.28f).coerceIn(0f, 1f)
             translationY = (1f - value) * 8.dp.toPx()
             scaleX = 0.92f + value * 0.08f
             scaleY = 0.92f + value * 0.08f
@@ -570,12 +662,13 @@ private data class DrawnTagStroke(
     val points: List<Offset>,
 )
 
+@Composable
 private fun journalMoodOptions() = listOf(
-    JournalMoodOption("❤️", "Love", Color(0xFFE40046)),
-    JournalMoodOption("😊", "Happy", Color(0xFFFFB85F)),
-    JournalMoodOption("😌", "Calm", Color(0xFF2412C9)),
-    JournalMoodOption("🥲", "Moved", Color(0xFF1698D3)),
-    JournalMoodOption("🌿", "Fresh", Color(0xFF3D9B10)),
+    JournalMoodOption("❤️", stringResource(R.string.mood_love), Color(0xFFE40046)),
+    JournalMoodOption("😊", stringResource(R.string.mood_happy), Color(0xFFFFB85F)),
+    JournalMoodOption("😌", stringResource(R.string.mood_calm), Color(0xFF2412C9)),
+    JournalMoodOption("🥲", stringResource(R.string.mood_moved), Color(0xFF1698D3)),
+    JournalMoodOption("🌿", stringResource(R.string.mood_fresh), Color(0xFF3D9B10)),
 )
 
 private fun moodIcon(mood: String): String =
@@ -599,13 +692,13 @@ private fun JournalTagSheet(
     onComplete: (String, List<DrawnTagStroke>) -> Unit,
     onDismiss: () -> Unit,
 ) {
-    val options = remember { journalMoodOptions() }
+    val options = journalMoodOptions()
     val sheetScope = rememberCoroutineScope()
     val sketchTag = stringResource(R.string.edit_tag_sketch)
-    val defaultMood = remember { "${options[1].emoji} ${options[1].label}" }
+    val defaultMood = "${options[1].emoji} ${options[1].label}"
     var draftMood by remember(selectedMood) { mutableStateOf(selectedMood.ifBlank { defaultMood }) }
-    var selectedColor by remember(selectedMood) {
-        mutableStateOf(options.firstOrNull { "${it.emoji} ${it.label}" == draftMood }?.color ?: options.first().color)
+    var selectedColor by remember(selectedMood, options) {
+        mutableStateOf(options.firstOrNull { it.emoji == moodIcon(draftMood) }?.color ?: options.first().color)
     }
     var erasing by remember { mutableStateOf(false) }
     val strokes = remember { mutableStateListOf<DrawnTagStroke>() }

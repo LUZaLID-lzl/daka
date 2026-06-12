@@ -35,6 +35,7 @@ internal fun HomeScreen(
     repository: ClickClackRepository,
     recommendations: List<Recommendation>,
     onHistory: () -> Unit,
+    onUiLab: () -> Unit,
     onRecord: (String?, Recommendation, Boolean) -> Unit,
 ) {
     val todayRecord by repository.observeTodayRecord().collectAsState(initial = null)
@@ -107,12 +108,9 @@ internal fun HomeScreen(
             dragDistance = dragDistance,
             records = records,
             repository = repository,
-            onProfile = {
-                selectedContent = when (selectedContent) {
-                    HomeContentDestination.Profile -> HomeContentDestination.Home
-                    else -> HomeContentDestination.Profile
-                }
-            },
+            onActive = { selectedContent = HomeContentDestination.Home },
+            onPast = { selectedContent = HomeContentDestination.Records },
+            onUiLab = onUiLab,
             onDragDistanceChange = { dragDistance = it },
             onSwipeRecommendation = moveCard,
             onActiveRecommendationChange = { currentCardIndex = it },
@@ -188,7 +186,9 @@ private fun HomeScreenPreview() {
                     dragDistance = dragDistance,
                     records = emptyList(),
                     repository = null,
-                    onProfile = {},
+                    onActive = {},
+                    onPast = {},
+                    onUiLab = {},
                     onDragDistanceChange = { dragDistance = it },
                     onSwipeRecommendation = { direction ->
                         activeIndex = if (direction < 0) {

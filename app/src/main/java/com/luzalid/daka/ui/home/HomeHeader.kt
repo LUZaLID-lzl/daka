@@ -7,35 +7,45 @@ import com.luzalid.daka.ui.app.appAppearance
 import com.luzalid.daka.ui.app.appColorScheme
 import com.luzalid.daka.ui.app.debugOutline
 
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Tune
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import com.luzalid.daka.R
 
 @Composable
 internal fun HomeHeroHeader(
-    onProfile: () -> Unit,
+    selectedDestination: HomeContentDestination,
+    onActive: () -> Unit,
+    onPast: () -> Unit,
+    onUiLab: () -> Unit,
 ) {
     Row(
         modifier = Modifier
@@ -47,7 +57,11 @@ internal fun HomeHeroHeader(
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        HomeAvatar(onProfile = onProfile)
+        HomePeriodSwitcher(
+            activeSelected = selectedDestination == HomeContentDestination.Home,
+            onActive = onActive,
+            onPast = onPast,
+        )
         Row(horizontalArrangement = Arrangement.spacedBy(14.dp)) {
             HeaderCircleButton(
                 icon = { tint ->
@@ -59,7 +73,7 @@ internal fun HomeHeroHeader(
                 icon = { tint ->
                     Icon(Icons.Filled.Tune, contentDescription = null, tint = tint, modifier = Modifier.size(23.dp))
                 },
-                onClick = {},
+                onClick = onUiLab,
             )
         }
     }
@@ -91,49 +105,73 @@ private fun HeaderCircleButton(
 }
 
 @Composable
-private fun HomeAvatar(onProfile: () -> Unit) {
-    Box(
+private fun HomePeriodSwitcher(
+    activeSelected: Boolean,
+    onActive: () -> Unit,
+    onPast: () -> Unit,
+) {
+    val shape = RoundedCornerShape(999.dp)
+    Row(
         modifier = Modifier
-            .size(42.dp)
+            .width(148.dp)
+            .height(46.dp)
             .shadow(
-                elevation = 8.dp,
-                shape = CircleShape,
+                elevation = 10.dp,
+                shape = shape,
                 clip = false,
-                ambientColor = Color(0x123B342A),
-                spotColor = Color(0x0C3B342A),
+                ambientColor = Color(0x103B4760),
+                spotColor = Color(0x0C3B4760),
             )
-            .clip(CircleShape)
-            .background(Color.White)
-            .clickable(onClick = onProfile)
-            .padding(3.dp)
-            .debugOutline(CircleShape),
+            .clip(shape)
+            .background(Color.White.copy(alpha = 0.92f))
+            .border(1.dp, Color.White.copy(alpha = 0.84f), shape)
+            .padding(5.dp)
+            .debugOutline(shape),
+        horizontalArrangement = Arrangement.spacedBy(2.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        PeriodTab(
+            text = stringResource(R.string.home_tab_active),
+            selected = activeSelected,
+            onClick = onActive,
+            modifier = Modifier.weight(1f),
+        )
+        PeriodTab(
+            text = stringResource(R.string.home_tab_past),
+            selected = !activeSelected,
+            onClick = onPast,
+            modifier = Modifier.weight(1f),
+        )
+    }
+}
+
+@Composable
+private fun PeriodTab(
+    text: String,
+    selected: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val shape = RoundedCornerShape(999.dp)
+    Box(
+        modifier = modifier
+            .height(36.dp)
+            .clip(shape)
+            .background(if (selected) Color(0xFFE6F0FF) else Color.Transparent)
+            .clickable(onClick = onClick)
+            .debugOutline(shape),
         contentAlignment = Alignment.Center,
     ) {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .clip(CircleShape)
-                .background(Color(0xFFF8DAC5)),
-            contentAlignment = Alignment.BottomCenter,
-        ) {
-            Canvas(modifier = Modifier.fillMaxSize()) {
-                drawCircle(
-                    color = Color(0xFF3B1D11),
-                    radius = size.minDimension * 0.22f,
-                    center = Offset(size.width * 0.50f, size.height * 0.30f),
-                )
-                drawCircle(
-                    color = Color(0xFFFFD7BF),
-                    radius = size.minDimension * 0.19f,
-                    center = Offset(size.width * 0.50f, size.height * 0.38f),
-                )
-                drawOval(
-                    color = Color(0xFFFFF7EF),
-                    topLeft = Offset(size.width * 0.28f, size.height * 0.58f),
-                    size = androidx.compose.ui.geometry.Size(size.width * 0.44f, size.height * 0.30f),
-                )
-            }
-        }
+        Text(
+            text = text,
+            color = if (selected) Color(0xFF3971B8) else Color(0xFF626974),
+            style = MaterialTheme.typography.labelMedium.copy(
+                fontSize = 12.sp,
+                lineHeight = 16.sp,
+                fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Medium,
+            ),
+            maxLines = 1,
+        )
     }
 }
 
@@ -146,7 +184,12 @@ private fun HomeHeroHeaderPreview() {
                 .fillMaxWidth()
                 .background(Color(0xFFF7F8FA)),
         ) {
-            HomeHeroHeader(onProfile = {})
+            HomeHeroHeader(
+                selectedDestination = HomeContentDestination.Home,
+                onActive = {},
+                onPast = {},
+                onUiLab = {},
+            )
         }
     }
 }

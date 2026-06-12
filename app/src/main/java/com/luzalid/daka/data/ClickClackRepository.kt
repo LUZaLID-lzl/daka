@@ -1,6 +1,7 @@
 package com.luzalid.daka.data
 
 import android.content.Context
+import android.content.res.Resources
 import com.luzalid.daka.R
 import com.luzalid.daka.model.MediaAttachment
 import com.luzalid.daka.model.MediaAttachmentDraft
@@ -34,23 +35,29 @@ class ClickClackRepository(context: Context) {
         seedPreference("debug_ui_outline", "false")
     }
 
-    suspend fun todayRecommendation(): Recommendation {
+    suspend fun todayRecommendation(resources: Resources = appContext.resources): Recommendation {
         val recommendations = dao.getEnabledRecommendations().ifEmpty {
             RecommendationCatalog.builtIns(appContext.resources).also { dao.insertRecommendations(it) }
         }
         val index = stableTodayIndex(recommendations.size)
-        return recommendations[index].toDomain()
+        return RecommendationCatalog.localized(resources, recommendations[index]).toDomain()
     }
 
-    suspend fun homeRecommendations(): List<Recommendation> {
+    suspend fun homeRecommendations(resources: Resources = appContext.resources): List<Recommendation> {
         val recommendations = dao.getEnabledRecommendations().ifEmpty {
             RecommendationCatalog.builtIns(appContext.resources).also { dao.insertRecommendations(it) }
         }
         val index = stableTodayIndex(recommendations.size)
-        return (recommendations.drop(index) + recommendations.take(index)).map { it.toDomain() }
+        return (recommendations.drop(index) + recommendations.take(index))
+            .map { RecommendationCatalog.localized(resources, it).toDomain() }
     }
 
-    suspend fun getRecommendation(id: String): Recommendation? = dao.getRecommendation(id)?.toDomain()
+    suspend fun getRecommendation(
+        id: String,
+        resources: Resources = appContext.resources,
+    ): Recommendation? = dao.getRecommendation(id)
+        ?.let { RecommendationCatalog.localized(resources, it) }
+        ?.toDomain()
 
     fun observeTodayRecord(): Flow<RecordSummary?> =
         dao.observeLatestRecordForDate(todayKey()).map { it?.toDomain() }

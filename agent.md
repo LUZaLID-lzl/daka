@@ -7,6 +7,15 @@
 6：间距最好使用百分比，固定距离会导致多设备不兼容
 7: 对于ui，有preference_debug_outline 需要添加边界
 
+## UI 测试界面启动宏
+
+1: UI Lab 启动宏为 `BuildConfig.OPEN_UI_LAB_ON_LAUNCH`，定义在 `app/build.gradle.kts`。
+2: `debug` 构建默认设置为 `false`，打开应用后进入正常首页；需要直接测试 `UiLabScreen` 时临时改为 `true`。
+3: `release` 构建必须保持为 `false`，禁止正式版本启动后进入测试界面。
+4: 启动路由统一在 `ClickClackApp.kt` 中读取该宏，不要在 Activity 或其他页面重复添加测试页跳转硬编码。
+5: UI Lab 的 Rive 测试资产固定放在 `app/src/main/res/raw/ui_lab_motion.riv`，Android 侧通过 `RiveMotionPreview.kt` 加载；替换动画时优先替换 `.riv` 文件，不要重写播放容器。
+6: Rive 正式资产需要在 Rive Editor 中维护状态机和输入；Compose 只负责页面状态、播放控制和失败降级，不在业务代码中模拟 Rive 内部骨骼动画。
+
 ## 首页 UI 设计规范
 
 > 2026-06-12 通过 `adb devices` 检查时未发现连接设备或模拟器，因此本规范先基于首页 Compose 源码整理。后续有设备时，需要用 `adb exec-out screencap -p` 复核真实截图与规范是否一致。

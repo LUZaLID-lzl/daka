@@ -330,7 +330,7 @@ private fun RecordCategoryCard(
         ) {
             Image(
                 painter = painterResource(categoryMotionImageRes(asset)),
-                contentDescription = "$category $count",
+                contentDescription = stringResource(R.string.record_category_count, category, count),
                 contentScale = ContentScale.Fit,
                 modifier = Modifier
                     .fillMaxSize()

@@ -32,7 +32,9 @@ internal fun HomeContentArea(
     dragDistance: Float,
     records: List<RecordSummary>,
     repository: ClickClackRepository?,
-    onProfile: () -> Unit,
+    onActive: () -> Unit,
+    onPast: () -> Unit,
+    onUiLab: () -> Unit,
     onDragDistanceChange: (Float) -> Unit,
     onSwipeRecommendation: (Int) -> Unit,
     onActiveRecommendationChange: (Int) -> Unit,
@@ -55,7 +57,12 @@ internal fun HomeContentArea(
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             if (selectedContent != HomeContentDestination.Profile) {
-                HomeHeroHeader(onProfile = onProfile)
+                HomeHeroHeader(
+                    selectedDestination = selectedContent,
+                    onActive = onActive,
+                    onPast = onPast,
+                    onUiLab = onUiLab,
+                )
             }
             when (selectedContent) {
                 HomeContentDestination.Home -> {

@@ -9,9 +9,27 @@
     <string name="home_subtitle">Capture a little piece of life today.</string>
     <string name="home_quote">“The best time to plant a tree was 20 years ago. The second best time is now.”</string>
     <string name="home_shuffle_group">Shuffle set</string>
+    <string name="home_tab_active">Recommended</string>
+    <string name="home_tab_past">All</string>
 
     <string name="screen_profile">Profile</string>
     <string name="screen_check_in">Create Record</string>
+    <string name="screen_ui_lab">UI Motion Lab</string>
+    <string name="ui_lab_description">Inspect layered vector graphics, state-driven motion, and rendering at different sizes.</string>
+    <string name="ui_lab_preview">Live preview</string>
+    <string name="ui_lab_background">Preview background</string>
+    <string name="ui_lab_background_light">Light</string>
+    <string name="ui_lab_background_dark">Dark</string>
+    <string name="ui_lab_size">Component size</string>
+    <string name="ui_lab_size_small">Small</string>
+    <string name="ui_lab_size_medium">Medium</string>
+    <string name="ui_lab_size_large">Large</string>
+    <string name="ui_lab_replay">Replay</string>
+    <string name="ui_lab_play">Play</string>
+    <string name="ui_lab_pause">Pause</string>
+    <string name="ui_lab_rive_note">Powered by the Rive Android runtime. Replace raw/ui_lab_motion.riv to test the production animation.</string>
+    <string name="ui_lab_layers">Animation layers</string>
+    <string name="ui_lab_layers_body">Geometric accents · Character · Face · Bowl and food · Steam</string>
     <string name="action_back">Back</string>
     <string name="action_cancel">Cancel</string>
     <string name="action_save">Save</string>
@@ -36,6 +54,11 @@
     <string name="edit_tag_clear">Clear</string>
     <string name="edit_tag_done">Done</string>
     <string name="edit_tag_sketch">Sketched mood</string>
+    <string name="mood_love">Love</string>
+    <string name="mood_happy">Happy</string>
+    <string name="mood_calm">Calm</string>
+    <string name="mood_moved">Moved</string>
+    <string name="mood_fresh">Fresh</string>
     <string name="section_added_media">Added Media</string>
     <string name="section_media">Media</string>
 
@@ -46,6 +69,7 @@
     <string name="empty_records_body">Complete today’s suggestion and your journal will appear here in reverse chronological order.</string>
     <string name="record_updated">%1$s · Updated %2$s</string>
     <string name="record_card_meta">%1$s · %2$s</string>
+    <string name="record_category_count">%1$s, %2$d records</string>
     <string name="record_media_only">Media record</string>
 
     <string name="media_image">Image</string>

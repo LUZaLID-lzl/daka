@@ -13,15 +13,15 @@ import java.util.Locale
 
 @DrawableRes
 internal fun categoryMotionImageRes(asset: String): Int = when (asset.lowercase(Locale.getDefault())) {
-    "food" -> R.drawable.motion_food
-    "commute" -> R.drawable.motion_commute
-    "sport" -> R.drawable.motion_sport
-    "work" -> R.drawable.motion_work
-    "fun" -> R.drawable.motion_fun
-    "social" -> R.drawable.motion_social
-    "relax" -> R.drawable.motion_relax
-    "home" -> R.drawable.motion_home
-    "study" -> R.drawable.motion_study
-    "explore" -> R.drawable.motion_explore
-    else -> R.drawable.motion_food
+    "food" -> R.drawable.category_art_food
+    "commute" -> R.drawable.category_art_commute
+    "sport" -> R.drawable.category_art_sport
+    "work" -> R.drawable.category_art_work
+    "fun" -> R.drawable.category_art_fun
+    "social" -> R.drawable.category_art_social
+    "relax" -> R.drawable.category_art_relax
+    "home" -> R.drawable.category_art_home
+    "study" -> R.drawable.category_art_study
+    "explore" -> R.drawable.category_art_explore
+    else -> R.drawable.category_art_food
 }
