@@ -2,6 +2,7 @@ package com.luzalid.daka.ui.app
 
 import androidx.activity.compose.LocalActivityResultRegistryOwner
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.core.CubicBezierEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -40,6 +41,9 @@ private sealed interface AppRoute {
         val fromRecommendationCard: Boolean,
     ) : AppRoute
 }
+
+private val RouteEnterEase = CubicBezierEasing(0.16f, 1f, 0.3f, 1f)
+private val RouteExitEase = CubicBezierEasing(0.4f, 0f, 1f, 1f)
 
 @Composable
 fun ClickClackApp(repository: ClickClackRepository) {
@@ -80,25 +84,25 @@ fun ClickClackApp(repository: ClickClackRepository) {
                             when {
                                 enteringEdit -> {
                                     (
-                                        fadeIn(tween(320)) +
-                                            slideInVertically(tween(440)) { it / 14 } +
-                                            scaleIn(tween(440), initialScale = 0.985f)
+                                        fadeIn(tween(360, delayMillis = 70, easing = RouteEnterEase)) +
+                                            slideInVertically(tween(520, easing = RouteEnterEase)) { it / 16 } +
+                                            scaleIn(tween(520, easing = RouteEnterEase), initialScale = 0.982f)
                                         ).togetherWith(
-                                        fadeOut(tween(220)) +
-                                            slideOutVertically(tween(360)) { -it / 18 } +
-                                            scaleOut(tween(360), targetScale = 0.975f),
+                                        fadeOut(tween(260, easing = RouteExitEase)) +
+                                            slideOutVertically(tween(320, easing = RouteExitEase)) { -it / 24 } +
+                                            scaleOut(tween(320, easing = RouteExitEase), targetScale = 0.972f),
                                     )
                                 }
 
                                 leavingEdit -> {
                                     (
-                                        fadeIn(tween(300)) +
-                                            slideInVertically(tween(380)) { -it / 18 } +
-                                            scaleIn(tween(380), initialScale = 0.975f)
+                                        fadeIn(tween(340, delayMillis = 50, easing = RouteEnterEase)) +
+                                            slideInVertically(tween(460, easing = RouteEnterEase)) { -it / 20 } +
+                                            scaleIn(tween(460, easing = RouteEnterEase), initialScale = 0.976f)
                                         ).togetherWith(
-                                        fadeOut(tween(200)) +
-                                            slideOutVertically(tween(320)) { it / 14 } +
-                                            scaleOut(tween(320), targetScale = 0.985f),
+                                        fadeOut(tween(220, easing = RouteExitEase)) +
+                                            slideOutVertically(tween(300, easing = RouteExitEase)) { it / 18 } +
+                                            scaleOut(tween(300, easing = RouteExitEase), targetScale = 0.988f),
                                     )
                                 }
 

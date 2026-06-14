@@ -39,17 +39,29 @@ class ClickClackRepository(context: Context) {
         val recommendations = dao.getEnabledRecommendations().ifEmpty {
             RecommendationCatalog.builtIns(appContext.resources).also { dao.insertRecommendations(it) }
         }
-        val index = stableTodayIndex(recommendations.size)
-        return RecommendationCatalog.localized(resources, recommendations[index]).toDomain()
+        return prioritizedRecommendations(recommendations)
+            .first()
+            .let { RecommendationCatalog.localized(resources, it) }
+            .toDomain()
     }
 
     suspend fun homeRecommendations(resources: Resources = appContext.resources): List<Recommendation> {
         val recommendations = dao.getEnabledRecommendations().ifEmpty {
             RecommendationCatalog.builtIns(appContext.resources).also { dao.insertRecommendations(it) }
         }
-        val index = stableTodayIndex(recommendations.size)
-        return (recommendations.drop(index) + recommendations.take(index))
+        return prioritizedRecommendations(recommendations)
             .map { RecommendationCatalog.localized(resources, it).toDomain() }
+    }
+
+    private suspend fun prioritizedRecommendations(
+        recommendations: List<RecommendationEntity>,
+    ): List<RecommendationEntity> {
+        if (recommendations.isEmpty()) return emptyList()
+        val index = stableTodayIndex(recommendations.size)
+        val dailyOrder = recommendations.drop(index) + recommendations.take(index)
+        val recordedIds = dao.getRecordedRecommendationIds().toHashSet()
+        return dailyOrder.filterNot { it.id in recordedIds } +
+            dailyOrder.filter { it.id in recordedIds }
     }
 
     suspend fun getRecommendation(
@@ -177,6 +189,7 @@ private fun RecommendationEntity.toDomain(): Recommendation =
 private fun RecordSummaryProjection.toDomain(): RecordSummary =
     RecordSummary(
         id = id,
+        recommendationId = recommendationId,
         title = title,
         dateKey = dateKey,
         category = category,

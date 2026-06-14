@@ -58,7 +58,7 @@ internal fun HomeHeroHeader(
         verticalAlignment = Alignment.CenterVertically,
     ) {
         HomePeriodSwitcher(
-            activeSelected = selectedDestination == HomeContentDestination.Home,
+            selectedDestination = selectedDestination,
             onActive = onActive,
             onPast = onPast,
         )
@@ -106,7 +106,7 @@ private fun HeaderCircleButton(
 
 @Composable
 private fun HomePeriodSwitcher(
-    activeSelected: Boolean,
+    selectedDestination: HomeContentDestination,
     onActive: () -> Unit,
     onPast: () -> Unit,
 ) {
@@ -132,13 +132,13 @@ private fun HomePeriodSwitcher(
     ) {
         PeriodTab(
             text = stringResource(R.string.home_tab_active),
-            selected = activeSelected,
+            selected = selectedDestination == HomeContentDestination.Home,
             onClick = onActive,
             modifier = Modifier.weight(1f),
         )
         PeriodTab(
             text = stringResource(R.string.home_tab_past),
-            selected = !activeSelected,
+            selected = selectedDestination == HomeContentDestination.All,
             onClick = onPast,
             modifier = Modifier.weight(1f),
         )

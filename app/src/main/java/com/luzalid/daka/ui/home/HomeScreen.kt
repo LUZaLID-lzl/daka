@@ -26,6 +26,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.luzalid.daka.data.ClickClackRepository
 import com.luzalid.daka.model.Recommendation
+import com.luzalid.daka.model.RecordSummary
 import kotlin.math.abs
 import kotlin.random.Random
 
@@ -43,12 +44,15 @@ internal fun HomeScreen(
     val appearance = LocalAppAppearance.current
     var selectedContent by remember { mutableStateOf(HomeContentDestination.Home) }
     var groupSeed by remember(recommendations) { mutableStateOf(0) }
-    val homeCards = remember(recommendations, groupSeed) {
-        if (recommendations.size <= 3) {
-            recommendations.shuffled(Random(groupSeed))
-        } else {
-            recommendations.shuffled(Random(groupSeed)).take(3)
-        }
+    val homeCards = remember(recommendations, records, groupSeed) {
+        val recordedIds = records.mapTo(mutableSetOf(), RecordSummary::recommendationId)
+        val unrecorded = recommendations
+            .filterNot { it.id in recordedIds }
+            .shuffled(Random(groupSeed))
+        val recorded = recommendations
+            .filter { it.id in recordedIds }
+            .shuffled(Random(groupSeed + 1))
+        (unrecorded + recorded).take(3)
     }
     var currentCardIndex by remember(homeCards) { mutableStateOf(0) }
     var dragDistance by remember(homeCards) { mutableFloatStateOf(0f) }
@@ -103,13 +107,14 @@ internal fun HomeScreen(
         HomeContentArea(
             selectedContent = selectedContent,
             recommendations = homeCards,
+            allRecommendations = recommendations,
             activeRecommendation = recommendation,
             activeRecommendationIndex = currentCardIndex,
             dragDistance = dragDistance,
             records = records,
             repository = repository,
             onActive = { selectedContent = HomeContentDestination.Home },
-            onPast = { selectedContent = HomeContentDestination.Records },
+            onPast = { selectedContent = HomeContentDestination.All },
             onUiLab = onUiLab,
             onDragDistanceChange = { dragDistance = it },
             onSwipeRecommendation = moveCard,
@@ -121,6 +126,7 @@ internal fun HomeScreen(
             modifier = Modifier.align(Alignment.BottomCenter),
             selectedDestination = when (selectedContent) {
                 HomeContentDestination.Home -> HomeBottomDestination.Home
+                HomeContentDestination.All -> HomeBottomDestination.Home
                 HomeContentDestination.Records -> HomeBottomDestination.Records
                 HomeContentDestination.Profile -> HomeBottomDestination.Profile
             },
@@ -181,6 +187,7 @@ private fun HomeScreenPreview() {
                 HomeContentArea(
                     selectedContent = HomeContentDestination.Home,
                     recommendations = cards,
+                    allRecommendations = cards,
                     activeRecommendation = cards[activeIndex],
                     activeRecommendationIndex = activeIndex,
                     dragDistance = dragDistance,

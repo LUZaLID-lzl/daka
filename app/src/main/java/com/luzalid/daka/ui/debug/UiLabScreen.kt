@@ -55,7 +55,6 @@ import com.luzalid.daka.ui.app.LocalDebugUiOutline
 import com.luzalid.daka.ui.app.appAppearance
 import com.luzalid.daka.ui.app.appColorScheme
 import com.luzalid.daka.ui.app.debugOutline
-import com.luzalid.daka.ui.home.FoodMotionIllustration
 
 private enum class LabPreviewSize(val dimension: Dp) {
     Small(132.dp),
@@ -122,8 +121,8 @@ internal fun UiLabScreen(
             contentAlignment = Alignment.Center,
         ) {
             key(replayKey) {
-                RiveMotionPreview(
-                    contentDescription = stringResource(R.string.category_food),
+                ExploreMotionIllustration(
+                    contentDescription = stringResource(R.string.category_explore),
                     playing = playing,
                     replayKey = replayKey,
                     modifier = Modifier.size(previewSize.dimension),

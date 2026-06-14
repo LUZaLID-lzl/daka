@@ -519,6 +519,7 @@ private fun recordCategoryAsset(category: String): String {
 private fun previewRecordSummaries() = listOf(
     RecordSummary(
         id = "record-sport",
+        recommendationId = "local-sport-001",
         title = "饭后散步 20 分钟",
         dateKey = "2026-06-11",
         category = "运动",
@@ -529,6 +530,7 @@ private fun previewRecordSummaries() = listOf(
     ),
     RecordSummary(
         id = "record-food",
+        recommendationId = "local-food-001",
         title = "吃一份黄焖鸡米饭",
         dateKey = "2026-06-10",
         category = "美食",
@@ -539,6 +541,7 @@ private fun previewRecordSummaries() = listOf(
     ),
     RecordSummary(
         id = "record-social",
+        recommendationId = "local-social-001",
         title = "给一位朋友发一条问候",
         dateKey = "2026-06-09",
         category = "社交",

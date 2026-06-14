@@ -16,9 +16,11 @@ import com.luzalid.daka.model.Recommendation
 import com.luzalid.daka.model.RecordSummary
 import com.luzalid.daka.ui.profile.ProfileScreen
 import com.luzalid.daka.ui.records.RecordContent
+import com.luzalid.daka.ui.recommendations.AllRecommendationsContent
 
 internal enum class HomeContentDestination {
     Home,
+    All,
     Records,
     Profile,
 }
@@ -27,6 +29,7 @@ internal enum class HomeContentDestination {
 internal fun HomeContentArea(
     selectedContent: HomeContentDestination,
     recommendations: List<Recommendation>,
+    allRecommendations: List<Recommendation>,
     activeRecommendation: Recommendation?,
     activeRecommendationIndex: Int,
     dragDistance: Float,
@@ -56,7 +59,10 @@ internal fun HomeContentArea(
             modifier = Modifier.fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            if (selectedContent != HomeContentDestination.Profile) {
+            if (
+                selectedContent == HomeContentDestination.Home ||
+                selectedContent == HomeContentDestination.All
+            ) {
                 HomeHeroHeader(
                     selectedDestination = selectedContent,
                     onActive = onActive,
@@ -77,6 +83,16 @@ internal fun HomeContentArea(
                         onActiveRecommendationChange = onActiveRecommendationChange,
                         onRecommendationRecord = onRecommendationRecord,
                         onShuffleRecommendations = onShuffleRecommendations,
+                    )
+                }
+
+                HomeContentDestination.All -> {
+                    Spacer(Modifier.height(recordContentTopSpacing))
+                    AllRecommendationsContent(
+                        recommendations = allRecommendations,
+                        records = records,
+                        onRecommendationClick = onRecommendationRecord,
+                        modifier = Modifier.fillMaxSize(),
                     )
                 }
 

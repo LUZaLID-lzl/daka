@@ -21,10 +21,14 @@ interface ClickClackDao {
     @Query("SELECT * FROM recommendations WHERE id = :id LIMIT 1")
     suspend fun getRecommendation(id: String): RecommendationEntity?
 
+    @Query("SELECT DISTINCT recommendationId FROM check_in_records WHERE deletedAt IS NULL")
+    suspend fun getRecordedRecommendationIds(): List<String>
+
     @Query(
         """
         SELECT
             r.id,
+            r.recommendationId,
             r.title,
             r.dateKey,
             r.category,
@@ -43,6 +47,7 @@ interface ClickClackDao {
         """
         SELECT
             r.id,
+            r.recommendationId,
             r.title,
             r.dateKey,
             r.category,

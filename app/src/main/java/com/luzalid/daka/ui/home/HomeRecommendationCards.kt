@@ -565,7 +565,8 @@ private fun ThemeMotionVisual(
     val enterProgress = (progress / 0.58f).coerceIn(0f, 1f)
     val sparkleProgress = ((progress - 0.14f) / 0.72f).coerceIn(0f, 1f)
     val sparkleAlpha = (1f - sparkleProgress).coerceIn(0f, 1f)
-    val iconScale = 0.88f + enterProgress * 0.28f - (progress.coerceIn(0.58f, 1f) - 0.58f) * 0.10f
+    val iconScale = 0.88f + enterProgress * 0.28f -
+        (progress.coerceIn(0.58f, 1f) - 0.58f) * 0.10f
     val iconAlpha = 0.30f + enterProgress * 0.70f
 
     Box(

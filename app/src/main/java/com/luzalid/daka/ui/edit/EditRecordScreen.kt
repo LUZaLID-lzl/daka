@@ -17,6 +17,7 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.CubicBezierEasing
 import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.keyframes
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -104,11 +105,15 @@ import com.luzalid.daka.model.MediaType
 import com.luzalid.daka.model.Recommendation
 import java.util.UUID
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlin.math.max
 import kotlin.math.min
+import kotlin.math.PI
+import kotlin.math.cos
+import kotlin.math.sin
 
 @Composable
 internal fun EditRecordScreen(
@@ -266,33 +271,34 @@ internal fun EditRecordScreen(
                     .padding(bottom = 108.dp),
             )
         }
-        if (showTagSheet) {
-            AnimatedVisibility(
-                visible = showTagSheet,
-                enter = fadeIn(tween(durationMillis = 180, easing = DrawerGsapEase)) + slideInVertically(
-                    animationSpec = tween(durationMillis = 520, easing = DrawerGsapEase),
-                    initialOffsetY = { it },
-                ),
-                exit = fadeOut(tween(durationMillis = 120, easing = DrawerGsapEase)) + slideOutVertically(
-                    animationSpec = tween(durationMillis = 260, easing = DrawerGsapEase),
-                    targetOffsetY = { it },
-                ),
-                modifier = Modifier
-                    .fillMaxSize()
-                    .align(Alignment.BottomCenter),
-            ) {
-                JournalTagSheet(
-                    selectedMood = mood,
-                    onComplete = { selectedMood, strokes ->
-                        mood = selectedMood
-                        moodStrokes.clear()
-                        moodStrokes.addAll(strokes)
+        AnimatedVisibility(
+            visible = showTagSheet,
+            enter = fadeIn(tween(durationMillis = 180, easing = DrawerGsapEase)) + slideInVertically(
+                animationSpec = tween(durationMillis = 520, easing = DrawerGsapEase),
+                initialOffsetY = { it },
+            ),
+            exit = fadeOut(tween(durationMillis = 320, easing = DrawerExitEase)) + slideOutVertically(
+                animationSpec = tween(durationMillis = 620, easing = DrawerExitEase),
+                targetOffsetY = { (it * 1.08f).toInt() },
+            ),
+            modifier = Modifier
+                .fillMaxSize()
+                .align(Alignment.BottomCenter),
+        ) {
+            JournalTagSheet(
+                selectedMood = mood,
+                onComplete = { selectedMood, strokes ->
+                    mood = selectedMood
+                    moodStrokes.clear()
+                    moodStrokes.addAll(strokes)
+                    showTagSheet = false
+                    scope.launch {
+                        delay(360)
                         moodAnimationTrigger += 1
-                        showTagSheet = false
-                    },
-                    onDismiss = { showTagSheet = false },
-                )
-            }
+                    }
+                },
+                onDismiss = { showTagSheet = false },
+            )
         }
     }
 }
@@ -353,6 +359,7 @@ private fun JournalEditContent(
 
 private val CardEntryEase = CubicBezierEasing(0.215f, 0.61f, 0.355f, 1f)
 private val DrawerGsapEase = CubicBezierEasing(0.16f, 1f, 0.3f, 1f)
+private val DrawerExitEase = CubicBezierEasing(0.55f, 0f, 0.85f, 0.36f)
 
 @Composable
 private fun RecommendationArtworkFlight(
@@ -377,7 +384,8 @@ private fun RecommendationArtworkFlight(
     val value = progress.value
     if (value < 1f) {
         Box(modifier = modifier) {
-            listOf(0.09f to 0.13f, 0.045f to 0.25f, 0f to 1f).forEach { (delay, opacity) ->
+            listOf(0.105f to 0.08f, 0.07f to 0.15f, 0.035f to 0.28f, 0f to 1f)
+                .forEach { (delay, opacity) ->
                 val trailProgress = (value - delay).coerceAtLeast(0f)
                 Image(
                     painter = painterResource(categoryMotionImageRes(recommendation.imageAsset)),
@@ -400,7 +408,8 @@ private fun RecommendationArtworkFlight(
                             scaleX = 1f + 3.35f * remaining
                             scaleY = 1f + 3.35f * remaining
                             rotationZ = artworkFlightRotation(trailProgress, turnDirection)
-                            alpha = targetHandoff * opacity
+                            val launchAlpha = (trailProgress / 0.08f).coerceIn(0f, 1f)
+                            alpha = targetHandoff * launchAlpha * opacity
                         },
                 )
             }
@@ -412,27 +421,19 @@ private fun artworkFlightX(
     progress: Float,
     amplitude: Float,
     direction: Float,
-): Float = when {
-    progress < 0.34f -> {
-        val segment = progress / 0.34f
-        amplitude * direction * segment
-    }
-
-    progress < 0.68f -> {
-        val segment = (progress - 0.34f) / 0.34f
-        amplitude * direction * (1f - segment * 1.65f)
-    }
-
-    else -> {
-        val segment = (progress - 0.68f) / 0.32f
-        -amplitude * direction * 0.65f * (1f - segment)
-    }
+): Float {
+    val radians = progress * PI.toFloat() * 2f
+    val envelope = sin(progress * PI.toFloat()).coerceAtLeast(0f)
+    return amplitude * direction * sin(radians) * envelope
 }
 
-private fun artworkFlightRotation(progress: Float, direction: Float): Float = when {
-    progress < 0.34f -> -8f * direction
-    progress < 0.68f -> 11f * direction
-    else -> -5f * direction * (1f - progress)
+private fun artworkFlightRotation(progress: Float, direction: Float): Float {
+    val radians = progress * PI.toFloat() * 2f
+    val envelope = sin(progress * PI.toFloat()).coerceAtLeast(0f)
+    val envelopeSlope = PI.toFloat() * cos(progress * PI.toFloat())
+    val curveSlope = 2f * PI.toFloat() * cos(radians) * envelope +
+        sin(radians) * envelopeSlope
+    return (-curveSlope * 1.15f * direction).coerceIn(-13f, 13f)
 }
 
 @Composable
@@ -475,18 +476,27 @@ private fun JournalRecommendationTagPill(
     modifier: Modifier = Modifier,
 ) {
     val shape = RoundedCornerShape(999.dp)
-    val pop = remember { Animatable(0f) }
+    val popScale = remember { Animatable(1f) }
     LaunchedEffect(moodAnimationTrigger) {
         if (moodAnimationTrigger > 0) {
-            pop.snapTo(0f)
-            pop.animateTo(1f, animationSpec = tween(durationMillis = 520, easing = CardEntryEase))
+            popScale.snapTo(0.72f)
+            popScale.animateTo(
+                targetValue = 1f,
+                animationSpec = keyframes {
+                    durationMillis = 680
+                    0.72f at 0 using DrawerGsapEase
+                    1.58f at 250 using CardEntryEase
+                    0.92f at 500 using CardEntryEase
+                    1f at 680
+                },
+            )
         }
     }
-    val popValue = pop.value
+    val popValue = popScale.value
     Row(
         modifier = modifier
             .height(46.dp)
-            .width(64.dp)
+            .width(82.dp)
             .shadow(
                 elevation = 13.dp,
                 shape = shape,
@@ -504,27 +514,27 @@ private fun JournalRecommendationTagPill(
                 ),
             )
             .border(1.dp, Color.White.copy(alpha = 0.76f), shape)
-            .padding(horizontal = 5.dp)
+            .padding(horizontal = 8.dp)
             .debugOutline(shape),
         horizontalArrangement = Arrangement.Center,
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Box(
             modifier = Modifier
-                .size(38.dp)
+                .size(40.dp)
                 .clip(CircleShape)
                 .background(Color.White.copy(alpha = 0.34f)),
             contentAlignment = Alignment.Center,
         ) {
-            if (popValue > 0f && (moodText.isNotBlank() || moodStrokes.isNotEmpty())) {
+            if (moodAnimationTrigger > 0 && (moodText.isNotBlank() || moodStrokes.isNotEmpty())) {
                 Box(
                     modifier = Modifier
-                        .size(38.dp)
+                        .size(40.dp)
                         .graphicsLayer {
-                            val expand = if (popValue < 0.55f) popValue / 0.55f else 1f - ((popValue - 0.55f) / 0.45f)
-                            scaleX = 1f + expand * 1.55f
-                            scaleY = 1f + expand * 1.55f
-                            alpha = expand.coerceIn(0f, 1f) * 0.44f
+                            val glow = ((popValue - 1f) / 0.58f).coerceIn(0f, 1f)
+                            scaleX = 1f + glow * 0.72f
+                            scaleY = 1f + glow * 0.72f
+                            alpha = glow * 0.48f
                         }
                         .clip(CircleShape)
                         .background(Color.White.copy(alpha = 0.54f)),
@@ -538,10 +548,8 @@ private fun JournalRecommendationTagPill(
                         .fillMaxSize()
                         .padding(4.dp)
                         .graphicsLayer {
-                            val overshoot = if (popValue < 0.45f) popValue / 0.45f else 1f - ((popValue - 0.45f) / 0.55f)
-                            val scale = 1f + overshoot.coerceIn(0f, 1f) * 0.34f
-                            scaleX = scale
-                            scaleY = scale
+                            scaleX = popValue
+                            scaleY = popValue
                         },
                 )
             } else if (moodText.isNotBlank()) {
@@ -551,10 +559,8 @@ private fun JournalRecommendationTagPill(
                     lineHeight = 22.sp,
                     textAlign = TextAlign.Center,
                     modifier = Modifier.graphicsLayer {
-                        val overshoot = if (popValue < 0.45f) popValue / 0.45f else 1f - ((popValue - 0.45f) / 0.55f)
-                        val scale = 1f + overshoot.coerceIn(0f, 1f) * 0.34f
-                        scaleX = scale
-                        scaleY = scale
+                        scaleX = popValue
+                        scaleY = popValue
                     },
                 )
             } else {
@@ -704,7 +710,7 @@ private fun JournalTagSheet(
     val strokes = remember { mutableStateListOf<DrawnTagStroke>() }
     val drawerProgress = remember { Animatable(0f) }
     val colorPulse = remember { Animatable(0f) }
-    val canvasBackground = Color(0xFFF2F2F3)
+    val canvasBackground = Color(0xFFF7F6FA)
     fun selectMoodColor(color: Color, mood: String = "✍️ $sketchTag") {
         selectedColor = color
         draftMood = mood
@@ -728,7 +734,14 @@ private fun JournalTagSheet(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.Black.copy(alpha = 0.16f)),
+            .background(
+                Brush.verticalGradient(
+                    listOf(
+                        Color.Black.copy(alpha = 0.05f),
+                        Color(0xFF171226).copy(alpha = 0.22f),
+                    ),
+                ),
+            ),
     ) {
         Box(
             modifier = Modifier
@@ -740,7 +753,7 @@ private fun JournalTagSheet(
                 .align(Alignment.BottomCenter)
                 .navigationBarsPadding()
                 .fillMaxWidth()
-                .height(500.dp)
+                .height(518.dp)
                 .graphicsLayer {
                     val value = drawerProgress.value
                     alpha = value
@@ -750,52 +763,52 @@ private fun JournalTagSheet(
                 }
                 .shadow(
                     elevation = 28.dp,
-                    shape = RoundedCornerShape(topStart = 38.dp, topEnd = 38.dp),
+                    shape = RoundedCornerShape(topStart = 42.dp, topEnd = 42.dp),
                     clip = false,
                     ambientColor = Color(0x1A0B1C30),
                     spotColor = Color(0x140B1C30),
                 )
-                .clip(RoundedCornerShape(topStart = 38.dp, topEnd = 38.dp))
+                .clip(RoundedCornerShape(topStart = 42.dp, topEnd = 42.dp))
                 .background(
                     Brush.verticalGradient(
                         listOf(
-                            Color(0xFFF7F7F8),
-                            Color(0xFFEFEFF2),
-                            Color(0xFFE8E7ED),
+                            Color(0xFFFCFBFE),
+                            Color(0xFFF4F2F8),
+                            Color(0xFFECE9F2),
                         ),
                     ),
                 )
-                .border(1.dp, Color.White.copy(alpha = 0.78f), RoundedCornerShape(topStart = 38.dp, topEnd = 38.dp))
+                .border(1.dp, Color.White.copy(alpha = 0.88f), RoundedCornerShape(topStart = 42.dp, topEnd = 42.dp))
                 .clickable(
                     indication = null,
                     interactionSource = remember { MutableInteractionSource() },
                     onClick = {},
                 )
-                .padding(horizontal = 30.dp, vertical = 18.dp)
-                .debugOutline(RoundedCornerShape(topStart = 38.dp, topEnd = 38.dp)),
+                .padding(horizontal = 24.dp, vertical = 16.dp)
+                .debugOutline(RoundedCornerShape(topStart = 42.dp, topEnd = 42.dp)),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             Box(
                 modifier = Modifier
-                    .width(36.dp)
-                    .height(4.dp)
+                    .width(42.dp)
+                    .height(5.dp)
                     .clip(RoundedCornerShape(999.dp))
-                    .background(Color(0xFFB6B6BC)),
+                    .background(Color(0xFFB8B4C3).copy(alpha = 0.72f)),
             )
-            Spacer(Modifier.height(20.dp))
+            Spacer(Modifier.height(16.dp))
             Text(
                 text = stringResource(R.string.edit_tag_sheet_title),
-                color = Color(0xFF3126C8),
+                color = Color(0xFF332B78),
                 textAlign = TextAlign.Center,
                 style = TextStyle(
                     fontFamily = FontFamily.Monospace,
-                    fontSize = 14.sp,
-                    lineHeight = 18.sp,
+                    fontSize = 15.sp,
+                    lineHeight = 20.sp,
                     fontWeight = FontWeight.Bold,
                     letterSpacing = 0.35.sp,
                 ),
             )
-            Spacer(Modifier.height(18.dp))
+            Spacer(Modifier.height(16.dp))
             JournalTagDrawingCanvas(
                 strokes = strokes,
                 selectedColor = selectedColor,
@@ -806,16 +819,23 @@ private fun JournalTagSheet(
                 },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .weight(1f),
+                    .weight(1f)
+                    .shadow(
+                        elevation = 10.dp,
+                        shape = RoundedCornerShape(30.dp),
+                        clip = false,
+                        ambientColor = Color(0x120B1C30),
+                        spotColor = Color(0x0C0B1C30),
+                    ),
             )
-            Spacer(Modifier.height(14.dp))
+            Spacer(Modifier.height(16.dp))
             JournalTagActionRow(
                 erasing = erasing,
                 onToggleErase = { erasing = !erasing },
                 onClear = { strokes.clear() },
                 onDone = { onComplete(draftMood.ifBlank { "✍️ $sketchTag" }, strokes.toList()) },
             )
-            Spacer(Modifier.height(14.dp))
+            Spacer(Modifier.height(12.dp))
             JournalMoodColorSelector(
                 options = options,
                 selectedColor = selectedColor,
@@ -841,11 +861,18 @@ private fun JournalMoodColorSelector(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .height(72.dp)
+            .height(68.dp)
             .clip(RoundedCornerShape(999.dp))
-            .background(Color(0xFFE0DDEF).copy(alpha = 0.90f))
-            .border(1.dp, Color.White.copy(alpha = 0.64f), RoundedCornerShape(999.dp))
-            .padding(horizontal = 24.dp)
+            .background(
+                Brush.horizontalGradient(
+                    listOf(
+                        Color(0xFFE8E5F2).copy(alpha = 0.94f),
+                        Color(0xFFDED9EB).copy(alpha = 0.90f),
+                    ),
+                ),
+            )
+            .border(1.dp, Color.White.copy(alpha = 0.78f), RoundedCornerShape(999.dp))
+            .padding(horizontal = 20.dp)
             .debugOutline(RoundedCornerShape(999.dp)),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,

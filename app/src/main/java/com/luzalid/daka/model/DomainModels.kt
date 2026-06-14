@@ -27,6 +27,7 @@ data class MediaAttachmentDraft(
 
 data class RecordSummary(
     val id: String,
+    val recommendationId: String,
     val title: String,
     val dateKey: String,
     val category: String,
